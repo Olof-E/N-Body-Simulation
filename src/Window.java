@@ -3,18 +3,19 @@ import java.awt.*;
 import java.awt.geom.Rectangle2D;
 
 public class Window {
-    WindowCanvas canvas;
+    private JFrame window;
+    private WindowCanvas canvas;
 
     public void CreateWindow(Body[] bodies) {
-        JFrame frame = new JFrame("Simulation");
-        Vector2 windowSize = new Vector2(1280, 720);
+        window = new JFrame("Simulation");
+        Vector2 windowSize = new Vector2(1280, 1280);
         canvas = new WindowCanvas(windowSize, bodies);
-        frame.setSize((int) windowSize.x, (int) windowSize.y);
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setResizable(false);
+        window.setSize((int) windowSize.x, (int) windowSize.y);
+        window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        window.setResizable(false);
 
-        frame.add(canvas);
-        frame.setVisible(true);
+        window.add(canvas);
+        window.setVisible(true);
     }
 
     public class WindowCanvas extends JComponent {
@@ -39,7 +40,7 @@ public class Window {
             drawBodies(g2d);
 
             long endTime = System.nanoTime();
-            System.out.printf("Rendering: %d ms\n", (endTime - startTime) / 1000000);
+            // System.out.printf("Rendering: %d ms\n", (endTime - startTime) / 1000000);
         }
 
         private void drawBodies(Graphics2D g2d) {
@@ -50,7 +51,12 @@ public class Window {
 
     }
 
-    public void updateCanvas() {
+    public void updateWindow() {
         canvas.repaint();
+    }
+
+    public void Close() {
+        window.setVisible(false);
+        window.dispose();
     }
 }

@@ -17,7 +17,8 @@ public class Body {
     }
 
     public void draw(Graphics2D g2d) {
-        double size = (mass / 5.97219e24) * 2.5;
+        double size = (mass / 5.97219e24) * 4.5;
+
         g2d.setColor(Color.CYAN);
         if (size > 20) {
             g2d.setColor(Color.YELLOW);

@@ -1,34 +1,96 @@
 public class SeqSimulation {
     public static final double G_CONSTANT = 6.67545e-11;
     public static final double SIM_RADIUS = 1.4959e17;
-    public static final double DT = 11e-3;
+    public static final double DT = 14e-9;
     static Body[] bodies;
 
+    private static int simSteps = -1;
+    private static boolean simWindow = false;
+    private static Window window = null;
+
+    // Test Simulation, basic solar system
+    /*
+     * bodies[0].mass = 3e30;
+     * bodies[0].position = new Vector2(1280 / 2, 1280 / 2);
+     * 
+     * bodies[1].mass = ????
+     * bodies[1].position = new Vector2(1280 / 2, 500);
+     * bodies[1].velocity = new Vector2(8e19, 15e15);
+     * 
+     * bodies[2].mass = ???
+     * bodies[2].position = new Vector2(1280 / 2, 1280 - 250);
+     * bodies[2].velocity = new Vector2(-8e19, -15e15);
+     */
+
     public static void main(String[] args) throws Exception {
-        bodies = new Body[1500];
+        bodies = new Body[3];
         for (int i = 0; i < bodies.length; i++) {
             bodies[i] = new Body(
-                    new Vector2(Math.random() * 1280, Math.random() * 720),
+                    new Vector2(Math.random() * 1280, Math.random() * 1280),
                     5.97219e24 + (Math.random() * 2.0 - 1.0) * 4.33e24);
 
         }
 
-        Window window = new Window();
-        window.CreateWindow(bodies);
+        int i = 0;
 
-        while (true) {
-            long startTime = System.nanoTime();
-            calculateForces();
-            updatePositions();
-            long endTime = System.nanoTime();
+        while (i < args.length && args[i].startsWith("--")) {
+            if (args[i].equals("--simSteps")) {
+                simSteps = Integer.parseInt(args[++i]);
+            } else if (args[i].equals("--window")) {
+                simWindow = true;
+            } else {
+                cmdHelp();
+            }
+            i++;
+        }
 
-            System.out.printf("Calculations: %d ms\n", (endTime - startTime) / 1000000);
-            window.updateCanvas();
+        if (simWindow) {
+            window = new Window();
+            window.CreateWindow(bodies);
+        }
+
+        runSimulation(window, simSteps);
+
+        if (simWindow)
+            window.Close();
+    }
+
+    private static void cmdHelp() {
+        System.err.println("Usage: Simulation [options]");
+        System.err.println("Options are:");
+        System.err.println("    --simSteps <steps> | Excluded or set to -1, for endless simulation");
+        System.err.println("    --window | Enable the visualization");
+        System.exit(1);
+    }
+
+    public static void runSimulation(Window window, int simSteps) {
+        if (simSteps == -1) {
+            while (true) {
+                long startTime = System.nanoTime();
+                calculateForces();
+                updatePositions();
+                long endTime = System.nanoTime();
+
+                // System.out.printf("Calculations: %d ms\n", (endTime - startTime) / 1000000);
+                if (window != null)
+                    window.updateWindow();
+            }
+        } else {
+            for (int i = 0; i < simSteps; i++) {
+                long startTime = System.nanoTime();
+                calculateForces();
+                updatePositions();
+                long endTime = System.nanoTime();
+
+                // System.out.printf("Calculations: %d ms\n", (endTime - startTime) / 1000000);
+                if (window != null)
+                    window.updateWindow();
+            }
         }
     }
 
     public static Vector2 scaleUp(Vector2 vec) {
-        return new Vector2((vec.x / 1280) * SIM_RADIUS, (vec.y / 720) * SIM_RADIUS);
+        return new Vector2((vec.x / 1280) * SIM_RADIUS, (vec.y / 1280) * SIM_RADIUS);
     }
 
     public static void calculateForces() {
@@ -78,8 +140,8 @@ public class SeqSimulation {
             if (bodies[i].position.y <= 0) {
                 bodies[i].position.y = 1;
                 bodies[i].velocity.y = -bodies[i].velocity.y / 2;
-            } else if (bodies[i].position.y >= 720) {
-                bodies[i].position.y = 719;
+            } else if (bodies[i].position.y >= 1280) {
+                bodies[i].position.y = 1279;
                 bodies[i].velocity.y = -bodies[i].velocity.y / 2;
             }
         }
