@@ -1,3 +1,5 @@
+package common;
+
 public class Vector2 {
     public static Vector2 ZERO = new Vector2();
 

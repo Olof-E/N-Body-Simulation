@@ -1,18 +1,11 @@
 package normal;
 
 import common.Body;
+import common.Simulation;
 import common.Vector2;
 import common.Window;
 
-public class SeqSimulation {
-    public static final double G_CONSTANT = 6.67545e-11;
-    public static final double SIM_RADIUS = 1.4959e17;
-    public static final double DT = 14e-4;
-    static Body[] bodies;
-
-    private static int numBodies = 150;
-    private static int simSteps = -1;
-    private static boolean simWindow = false;
+public class SeqSimulation extends Simulation {
 
     // Test Simulation, basic solar system
     /*
@@ -28,82 +21,16 @@ public class SeqSimulation {
      * bodies[2].velocity = new Vector2(-8e19, -15e15);
      */
 
-    public static void main(String[] args) throws Exception {
-        int argI = 0;
-
-        while (argI < args.length && args[argI].startsWith("--")) {
-            if (args[argI].equals("--numBodies")) {
-                numBodies = Integer.parseInt(args[++argI]);
-            } else if (args[argI].equals("--simSteps")) {
-                simSteps = Integer.parseInt(args[++argI]);
-
-            } else if (args[argI].equals("--window")) {
-                simWindow = true;
-            } else {
-                cmdHelp();
-            }
-            argI++;
-        }
-
-        bodies = new Body[numBodies];
-        for (int i = 0; i < bodies.length; i++) {
-            bodies[i] = new Body(
-                    new Vector2(Math.random() * 1280, Math.random() * 1280),
-                    5.97219e24 + (Math.random() * 2.0 - 1.0) * 4.33e24);
-
-        }
-
-        if (simWindow) {
-            window = new Window();
-            window.CreateWindow(bodies);
-        }
-
-        runSimulation(window, simSteps);
-
-        if (simWindow)
-            window.Close();
+    public SeqSimulation(int numBodies, int simSteps) {
+        super(numBodies, simSteps);
     }
 
-    private static void cmdHelp() {
-        System.err.println("Usage: Simulation [options]");
-        System.err.println("Options are:");
-        System.err.println("    --numBodies <amount> |  set number of bodies");
-        System.err.println("    --simSteps <steps> | Excluded or set to -1, for endless simulation");
-        System.err.println("    --window | Enable the visualization");
-        System.exit(1);
-    }
-
-    public static void runSimulation(Window window, int simSteps) {
-        if (simSteps == -1) {
-            while (true) {
-                long startTime = System.nanoTime();
-                calculateForces();
-                updatePositions();
-                long endTime = System.nanoTime();
-
-                // System.out.printf("Calculations: %d ms\n", (endTime - startTime) / 1000000);
-                if (window != null)
-                    window.updateWindow();
-            }
-        } else {
-            for (int i = 0; i < simSteps; i++) {
-                long startTime = System.nanoTime();
-                calculateForces();
-                updatePositions();
-                long endTime = System.nanoTime();
-
-                // System.out.printf("Calculations: %d ms\n", (endTime - startTime) / 1000000);
-                if (window != null)
-                    window.updateWindow();
-            }
-        }
-    }
-
-    public static Vector2 scaleUp(Vector2 vec) {
+    private Vector2 scaleUp(Vector2 vec) {
         return new Vector2((vec.x / 1280) * SIM_RADIUS, (vec.y / 1280) * SIM_RADIUS);
     }
 
-    public static void calculateForces() {
+    @Override
+    protected void calculateForces() {
         double dist, mag;
         Vector2 dir;
         for (int i = 0; i < bodies.length - 1; i++) {
@@ -123,7 +50,8 @@ public class SeqSimulation {
         }
     }
 
-    public static void updatePositions() {
+    @Override
+    protected void updatePositions() {
         Vector2 deltaV;
         Vector2 deltaP;
         for (int i = 0; i < bodies.length; i++) {
