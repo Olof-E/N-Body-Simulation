@@ -1,12 +1,16 @@
+package common;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.geom.Rectangle2D;
 
 public class Window {
+    private static Window windowInstance = null;
+
     private JFrame window;
     private WindowCanvas canvas;
 
-    public void CreateWindow(Body[] bodies) {
+    private Window() {
         window = new JFrame("Simulation");
         Vector2 windowSize = new Vector2(1280, 1280);
         canvas = new WindowCanvas(windowSize, bodies);
@@ -18,7 +22,28 @@ public class Window {
         window.setVisible(true);
     }
 
-    public class WindowCanvas extends JComponent {
+    public static synchronized Window Window() {
+        if (windowInstance == null) {
+            windowInstance = new Window();
+        }
+
+        return windowInstance;
+    }
+
+    public void LinkData(Body[] bodies) {
+
+    }
+
+    public void updateWindow() {
+        canvas.repaint();
+    }
+
+    public void Close() {
+        window.setVisible(false);
+        window.dispose();
+    }
+
+    private class WindowCanvas extends JComponent {
 
         private Vector2 dimensions;
         private Body[] bodies;
@@ -51,12 +76,4 @@ public class Window {
 
     }
 
-    public void updateWindow() {
-        canvas.repaint();
-    }
-
-    public void Close() {
-        window.setVisible(false);
-        window.dispose();
-    }
 }

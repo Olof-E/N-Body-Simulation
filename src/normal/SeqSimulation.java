@@ -1,12 +1,18 @@
+package normal;
+
+import common.Body;
+import common.Vector2;
+import common.Window;
+
 public class SeqSimulation {
     public static final double G_CONSTANT = 6.67545e-11;
     public static final double SIM_RADIUS = 1.4959e17;
-    public static final double DT = 14e-9;
+    public static final double DT = 14e-4;
     static Body[] bodies;
 
+    private static int numBodies = 150;
     private static int simSteps = -1;
     private static boolean simWindow = false;
-    private static Window window = null;
 
     // Test Simulation, basic solar system
     /*
@@ -23,25 +29,28 @@ public class SeqSimulation {
      */
 
     public static void main(String[] args) throws Exception {
-        bodies = new Body[3];
+        int argI = 0;
+
+        while (argI < args.length && args[argI].startsWith("--")) {
+            if (args[argI].equals("--numBodies")) {
+                numBodies = Integer.parseInt(args[++argI]);
+            } else if (args[argI].equals("--simSteps")) {
+                simSteps = Integer.parseInt(args[++argI]);
+
+            } else if (args[argI].equals("--window")) {
+                simWindow = true;
+            } else {
+                cmdHelp();
+            }
+            argI++;
+        }
+
+        bodies = new Body[numBodies];
         for (int i = 0; i < bodies.length; i++) {
             bodies[i] = new Body(
                     new Vector2(Math.random() * 1280, Math.random() * 1280),
                     5.97219e24 + (Math.random() * 2.0 - 1.0) * 4.33e24);
 
-        }
-
-        int i = 0;
-
-        while (i < args.length && args[i].startsWith("--")) {
-            if (args[i].equals("--simSteps")) {
-                simSteps = Integer.parseInt(args[++i]);
-            } else if (args[i].equals("--window")) {
-                simWindow = true;
-            } else {
-                cmdHelp();
-            }
-            i++;
         }
 
         if (simWindow) {
@@ -58,6 +67,7 @@ public class SeqSimulation {
     private static void cmdHelp() {
         System.err.println("Usage: Simulation [options]");
         System.err.println("Options are:");
+        System.err.println("    --numBodies <amount> |  set number of bodies");
         System.err.println("    --simSteps <steps> | Excluded or set to -1, for endless simulation");
         System.err.println("    --window | Enable the visualization");
         System.exit(1);
