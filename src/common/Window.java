@@ -1,6 +1,9 @@
 package common;
 
 import javax.swing.*;
+
+import barnesHut.QuadTree;
+
 import java.awt.*;
 import java.awt.geom.Rectangle2D;
 
@@ -14,13 +17,15 @@ public class Window {
 
     private Window() {
         window = new JFrame("Simulation");
+        window.setLayout(new BorderLayout());
         Vector2 windowSize = new Vector2(1280, 1280);
         canvas = new WindowCanvas(windowSize);
-        window.setSize((int) windowSize.x, (int) windowSize.y);
+        canvas.setPreferredSize(new Dimension((int) windowSize.x, (int) windowSize.y));
         window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        window.setResizable(false);
+        // window.setResizable(false);
 
         window.add(canvas);
+        window.pack();
         window.setVisible(true);
     }
 
@@ -36,6 +41,11 @@ public class Window {
         canvas.bodies = bodies;
     }
 
+    public void LinkData(Body[] bodies, QuadTree quadTree) {
+        canvas.bodies = bodies;
+        canvas.quadTree = quadTree;
+    }
+
     public void updateWindow() {
         canvas.repaint();
     }
@@ -49,6 +59,7 @@ public class Window {
 
         private Vector2 dimensions;
         public Body[] bodies;
+        public QuadTree quadTree = null;
 
         public WindowCanvas(Vector2 dimensions) {
             this.dimensions = dimensions;
@@ -64,6 +75,8 @@ public class Window {
             g2d.fill(rec);
 
             drawBodies(g2d);
+            if (quadTree != null)
+                quadTree.Draw(g2d);
 
             // long endTime = System.nanoTime();
             // System.out.printf("Rendering: %d ms\n", (endTime - startTime) / 1000000);
@@ -71,7 +84,7 @@ public class Window {
 
         private void drawBodies(Graphics2D g2d) {
             for (int i = 0; i < bodies.length; i++) {
-                bodies[i].draw(g2d);
+                bodies[i].Draw(g2d);
             }
         }
 

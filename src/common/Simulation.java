@@ -3,7 +3,7 @@ package common;
 public abstract class Simulation {
     public final double G_CONSTANT = 6.67545e-11;
     public final double SIM_RADIUS = 1.4959e17;
-    public final double DT = 25e-3;
+    public final double DT = 22e-3;
 
     public Body[] bodies;
     public int simSteps = -1;
@@ -12,7 +12,7 @@ public abstract class Simulation {
         bodies = new Body[numBodies];
         for (int i = 0; i < bodies.length; i++) {
             bodies[i] = new Body(
-                    new Vector2(Math.random() * 1280, Math.random() * 1280),
+                    new Vector2((Math.random() * 0.98 + 0.01) * 1280, (Math.random() * 0.98 + 0.01) * 1280),
                     5.97219e24 + (Math.random() * 2.0 - 1.0) * 4.33e24);
 
         }

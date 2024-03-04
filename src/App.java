@@ -1,8 +1,4 @@
-import common.Body;
-import common.Simulation;
-import common.Vector2;
-import common.Window;
-import normal.SeqSimulation;
+import common.*;
 
 public class App {
 
@@ -21,17 +17,18 @@ public class App {
 
             } else if (args[argI].equals("--window")) {
                 visualizationEnabled = true;
-                Window.GetInstance().enabled = true;
             } else {
                 cmdHelp();
             }
             argI++;
         }
 
-        Simulation simulation = new SeqSimulation(numBodies, simSteps);
+        Simulation simulation = new barnesHut.SeqSimulation(numBodies, simSteps);
 
-        if (visualizationEnabled)
-            Window.GetInstance().LinkData(simulation.bodies);
+        if (visualizationEnabled) {
+            Window.GetInstance().enabled = true;
+            Window.GetInstance().LinkData(simulation.bodies, ((barnesHut.SeqSimulation) simulation).quadTree);
+        }
 
         simulation.Run();
 

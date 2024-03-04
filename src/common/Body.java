@@ -18,15 +18,15 @@ public class Body {
         force = new Vector2();
     }
 
-    public void draw(Graphics2D g2d) {
-        double size = (mass / 5.97219e24) * 4.5;
+    public void Draw(Graphics2D g2d) {
+        double size = 5;// (mass / 5.97219e24) * 4.5;
 
         g2d.setColor(Color.CYAN);
         if (size > 20) {
             g2d.setColor(Color.YELLOW);
             size = 20;
         }
-        Ellipse2D.Double ell = new Ellipse2D.Double(position.x, position.y, size, size);
+        Ellipse2D.Double ell = new Ellipse2D.Double(position.x - size / 2.0, position.y - size / 2.0, size, size);
         g2d.fill(ell);
     }
 }
