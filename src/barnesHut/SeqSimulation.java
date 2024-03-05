@@ -77,5 +77,6 @@ public class SeqSimulation extends Simulation {
             quadTree.Insert(bodies[i]);
         }
         Window.GetInstance().LinkData(bodies, quadTree);
+
     }
 }

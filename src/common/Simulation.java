@@ -5,7 +5,7 @@ import java.nio.charset.Charset;
 public abstract class Simulation {
     public static final double G_CONSTANT = 6.67545e-11;
     public static final double SIM_RADIUS = 1.4959e17;
-    public static final double DT = 7e-10;
+    public static final double DT = 2e-10;
 
     public Body[] bodies;
     public int simSteps = -1;

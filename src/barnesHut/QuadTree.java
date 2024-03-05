@@ -1,8 +1,13 @@
 package barnesHut;
 
+import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics2D;
+import java.awt.Stroke;
+import java.awt.geom.Ellipse2D;
 import java.awt.geom.Rectangle2D;
+
+import javax.swing.border.StrokeBorder;
 
 import common.*;
 
@@ -102,26 +107,27 @@ public class QuadTree {
         }
 
         public void ComputePseudoBodies() {
-            int counter = 0;
             Vector2 aggregate = new Vector2();
             double totalMass = 0;
 
             if (bodyCount == 1) {
-                aggregate = body.position;
-                totalMass = body.mass;
-                counter++;
+                centerOfMass = body.position;
+                mass = body.mass;
             } else {
                 for (int i = 0; i < children.length; i++) {
                     if (children[i] != null && children[i].bodyCount > 0) {
                         children[i].ComputePseudoBodies();
-                        aggregate = Vector2.add(aggregate, children[i].centerOfMass);
+                        aggregate = Vector2.add(aggregate,
+                                Vector2.mul(scaleUp(children[i].centerOfMass),
+                                        children[i].mass));
                         totalMass += children[i].mass;
-                        counter++;
                     }
                 }
+                centerOfMass = Vector2.div(aggregate, (totalMass * Simulation.SIM_RADIUS) / 1280);
+
+                mass = totalMass;
             }
-            centerOfMass = new Vector2(aggregate.x / counter, aggregate.y / counter);
-            mass = totalMass;
+
         }
 
         private Vector2 scaleUp(Vector2 vec) {
@@ -133,7 +139,7 @@ public class QuadTree {
 
             if (this.bodyCount == 1) {
                 if (otherBody == this.body)
-                    return force;
+                    return new Vector2();
                 Vector2 scaledVecI = scaleUp(otherBody.position);
                 Vector2 scaledVecJ = scaleUp(centerOfMass);
 
@@ -146,7 +152,7 @@ public class QuadTree {
                 double r = Vector2.dist(otherBody.position, centerOfMass);
                 double D = width;
 
-                if (D / r < 1) {
+                if (D / r < 0.5) {
                     Vector2 scaledVecI = scaleUp(otherBody.position);
                     Vector2 scaledVecJ = scaleUp(centerOfMass);
 
@@ -170,8 +176,17 @@ public class QuadTree {
             Rectangle2D quad = new Rectangle2D.Double(this.pos.x - this.width / 2.0, this.pos.y - this.width / 2.0,
                     this.width, this.width);
             g2d.setColor(Color.GREEN);
+            g2d.setStroke(new BasicStroke(1));
             g2d.draw(quad);
 
+            if (centerOfMass != null) {
+                g2d.setColor(Color.red);
+                g2d.setStroke(new BasicStroke(2.5f));
+                double dotWidth = Math.exp(this.width / (0.6 * 1280)) * 7.5;
+                Ellipse2D center = new Ellipse2D.Double(centerOfMass.x - dotWidth / 2.0,
+                        centerOfMass.y - dotWidth / 2.0, dotWidth, dotWidth);
+                g2d.draw(center);
+            }
             for (int i = 0; i < children.length; i++) {
                 if (children[i] != null)
                     children[i].Draw(g2d);

@@ -2,4 +2,4 @@
 javac ./src/App.java -cp ./src/ -d bin/
 
 
-java -cp ./bin/ App -n $1 -w -s 10000
+java -cp ./bin/ App -n $1 -w -s $2

@@ -75,7 +75,7 @@ public class Window {
             g2d.fill(rec);
 
             drawBodies(g2d);
-            if (quadTree != null && false)
+            if (quadTree != null)
                 quadTree.Draw(g2d);
 
             // long endTime = System.nanoTime();

@@ -27,12 +27,12 @@ public class App {
         }
 
         try {
-            Simulation simulation = new normal.SeqSimulation(numBodies, simSteps);
+            Simulation simulation = new barnesHut.SeqSimulation(numBodies, simSteps);
             simulation.terminalCompatibility = terminalCompatibility;
 
             if (visualizationEnabled) {
                 Window.GetInstance().enabled = true;
-                if (simulation.getClass() == barnesHut.SeqSimulation.class)
+                if (simulation.getClass().getPackageName() == "barnesHut")
                     Window.GetInstance().LinkData(simulation.bodies, ((barnesHut.SeqSimulation) simulation).quadTree);
 
                 Window.GetInstance().LinkData(simulation.bodies);
