@@ -19,7 +19,7 @@ public class Body {
     }
 
     public void Draw(Graphics2D g2d) {
-        double size = 5;// (mass / 5.97219e24) * 4.5;
+        double size = Math.max((mass / 10.97219e24) * 5, 2.5);
 
         g2d.setColor(Color.CYAN);
         if (size > 20) {

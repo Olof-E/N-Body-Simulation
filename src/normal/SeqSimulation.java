@@ -67,18 +67,18 @@ public class SeqSimulation extends Simulation {
 
             if (bodies[i].position.x <= 0) {
                 bodies[i].position.x = 1;
-                bodies[i].velocity.x = -bodies[i].velocity.x / 2;
+                bodies[i].velocity.x = 0;
             } else if (bodies[i].position.x >= 1280) {
                 bodies[i].position.x = 1279;
-                bodies[i].velocity.x = -bodies[i].velocity.x / 2;
+                bodies[i].velocity.x = 0;
             }
 
             if (bodies[i].position.y <= 0) {
                 bodies[i].position.y = 1;
-                bodies[i].velocity.y = -bodies[i].velocity.y / 2;
+                bodies[i].velocity.y = 0;
             } else if (bodies[i].position.y >= 1280) {
                 bodies[i].position.y = 1279;
-                bodies[i].velocity.y = -bodies[i].velocity.y / 2;
+                bodies[i].velocity.y = 0;
             }
         }
     }

@@ -4,7 +4,7 @@ import common.Simulation;
 import common.Vector2;
 import common.Window;
 
-public class SeqSimulation extends Simulation {
+public class ParSimulation extends Simulation {
 
     // Test Simulation, basic solar system
     /*
@@ -22,7 +22,7 @@ public class SeqSimulation extends Simulation {
 
     public QuadTree quadTree;
 
-    public SeqSimulation(int numBodies, int simSteps) {
+    public ParSimulation(int numBodies, int simSteps) {
         super(numBodies, simSteps);
 
         quadTree = new QuadTree(new Vector2(1280, 1280));

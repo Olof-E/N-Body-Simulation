@@ -5,35 +5,50 @@ public class App {
     private static int numBodies = 150;
     private static int simSteps = -1;
     private static boolean visualizationEnabled = false;
+    private static boolean terminalCompatibility = false;
 
     public static void main(String[] args) throws Exception {
         int argI = 0;
 
-        while (argI < args.length && args[argI].startsWith("--")) {
-            if (args[argI].equals("--numBodies")) {
+        while (argI < args.length && (args[argI].startsWith("-") || args[argI].startsWith("--"))) {
+            if (args[argI].equals("-n") || args[argI].equals("--numBodies")) {
                 numBodies = Integer.parseInt(args[++argI]);
-            } else if (args[argI].equals("--simSteps")) {
+            } else if (args[argI].equals("-s") || args[argI].equals("--simSteps")) {
                 simSteps = Integer.parseInt(args[++argI]);
 
-            } else if (args[argI].equals("--window")) {
+            } else if (args[argI].equals("-w") || args[argI].equals("--window")) {
                 visualizationEnabled = true;
+            } else if (args[argI].equals("-tc") || args[argI].equals("--terminal-compatibility")) {
+                terminalCompatibility = true;
             } else {
                 cmdHelp();
             }
             argI++;
         }
 
-        Simulation simulation = new barnesHut.SeqSimulation(numBodies, simSteps);
+        try {
+            Simulation simulation = new normal.SeqSimulation(numBodies, simSteps);
+            simulation.terminalCompatibility = terminalCompatibility;
 
-        if (visualizationEnabled) {
-            Window.GetInstance().enabled = true;
-            Window.GetInstance().LinkData(simulation.bodies, ((barnesHut.SeqSimulation) simulation).quadTree);
+            if (visualizationEnabled) {
+                Window.GetInstance().enabled = true;
+                if (simulation.getClass() == barnesHut.SeqSimulation.class)
+                    Window.GetInstance().LinkData(simulation.bodies, ((barnesHut.SeqSimulation) simulation).quadTree);
+
+                Window.GetInstance().LinkData(simulation.bodies);
+            }
+
+            simulation.Run();
+
+            if (visualizationEnabled)
+                Window.GetInstance().Close();
+
+            System.out.println("\nSimulation finished");
+        } catch (Exception e) {
+            System.out.println("\nSimulation failed");
+            System.err.println("Error shown below: ");
+            e.printStackTrace();
         }
-
-        simulation.Run();
-
-        if (visualizationEnabled)
-            Window.GetInstance().Close();
     }
 
     private static void cmdHelp() {

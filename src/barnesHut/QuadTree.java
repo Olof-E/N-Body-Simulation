@@ -17,6 +17,14 @@ public class QuadTree {
         root.Insert(body);
     }
 
+    public void ComputePseudoBodies() {
+        root.ComputePseudoBodies();
+    }
+
+    public Vector2 calculateForce(Body body) {
+        return root.calculateForce(body);
+    }
+
     public void Draw(Graphics2D g2d) {
         root.Draw(g2d);
     }
@@ -28,8 +36,8 @@ public class QuadTree {
         public Vector2 pos = null;
         public double width;
 
-        // public Vector2 centerOfMass;
-        // public double mass;
+        public Vector2 centerOfMass = null;
+        public double mass = 0;
 
         public int bodyCount = 0;
 
@@ -73,7 +81,7 @@ public class QuadTree {
                         children[1].Insert(this.body);
                     else if (children[2].Contains(this.body))
                         children[2].Insert(this.body);
-                    else
+                    else if (children[3].Contains(this.body))
                         children[3].Insert(this.body);
 
                     this.body = null;
@@ -84,13 +92,78 @@ public class QuadTree {
                         children[1].Insert(newBody);
                     else if (children[2].Contains(newBody))
                         children[2].Insert(newBody);
-                    else
+                    else if (children[3].Contains(newBody))
                         children[3].Insert(newBody);
                 }
             } else {
                 this.body = newBody;
             }
             this.bodyCount++;
+        }
+
+        public void ComputePseudoBodies() {
+            int counter = 0;
+            Vector2 aggregate = new Vector2();
+            double totalMass = 0;
+
+            if (bodyCount == 1) {
+                aggregate = body.position;
+                totalMass = body.mass;
+                counter++;
+            } else {
+                for (int i = 0; i < children.length; i++) {
+                    if (children[i] != null && children[i].bodyCount > 0) {
+                        children[i].ComputePseudoBodies();
+                        aggregate = Vector2.add(aggregate, children[i].centerOfMass);
+                        totalMass += children[i].mass;
+                        counter++;
+                    }
+                }
+            }
+            centerOfMass = new Vector2(aggregate.x / counter, aggregate.y / counter);
+            mass = totalMass;
+        }
+
+        private Vector2 scaleUp(Vector2 vec) {
+            return new Vector2((vec.x / 1280) * Simulation.SIM_RADIUS, (vec.y / 1280) * Simulation.SIM_RADIUS);
+        }
+
+        public Vector2 calculateForce(Body otherBody) {
+            Vector2 force = new Vector2();
+
+            if (this.bodyCount == 1) {
+                if (otherBody == this.body)
+                    return force;
+                Vector2 scaledVecI = scaleUp(otherBody.position);
+                Vector2 scaledVecJ = scaleUp(centerOfMass);
+
+                double dist = Vector2.dist(centerOfMass, otherBody.position);
+                double mag = (Simulation.G_CONSTANT * mass * otherBody.mass) / dist * dist;
+                Vector2 dir = Vector2.sub(scaledVecJ, scaledVecI);
+
+                force = new Vector2(mag * dir.x / dist, mag * dir.y / dist);
+            } else if (this.bodyCount != 0) {
+                double r = Vector2.dist(otherBody.position, centerOfMass);
+                double D = width;
+
+                if (D / r < 1) {
+                    Vector2 scaledVecI = scaleUp(otherBody.position);
+                    Vector2 scaledVecJ = scaleUp(centerOfMass);
+
+                    double dist = Vector2.dist(centerOfMass, otherBody.position);
+                    double mag = (Simulation.G_CONSTANT * mass * otherBody.mass) / dist * dist;
+                    Vector2 dir = Vector2.sub(scaledVecJ, scaledVecI);
+
+                    force = new Vector2(mag * dir.x / dist, mag * dir.y / dist);
+                } else {
+                    for (int i = 0; i < children.length; i++) {
+                        if (children[i] != null) {
+                            force = Vector2.add(force, children[i].calculateForce(otherBody));
+                        }
+                    }
+                }
+            }
+            return force;
         }
 
         public void Draw(Graphics2D g2d) {
