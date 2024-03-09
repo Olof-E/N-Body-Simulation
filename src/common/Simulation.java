@@ -5,7 +5,7 @@ import java.nio.charset.Charset;
 public abstract class Simulation {
     public static final double G_CONSTANT = 6.67545e-11;
     public static final double SIM_RADIUS = 1.4959e17;
-    public static final double DT = 2e-10;
+    public static final double DT = 1e-4;
 
     public Body[] bodies;
     public int simSteps = -1;
@@ -17,14 +17,13 @@ public abstract class Simulation {
         this.simSteps = simSteps;
         for (int i = 0; i < bodies.length; i++) {
             bodies[i] = new Body(
-                    new Vector2((Math.random() * 0.98 + 0.01) * 1280, (Math.random() * 0.98 + 0.01) * 1280),
+                    new Vector2((Math.random() * 0.98 + 0.01) * SIM_RADIUS, (Math.random() * 0.98 + 0.01) * SIM_RADIUS),
                     5.97219e24 + (Math.random() * 2.0 - 1.0) * 4.33e24);
 
         }
     }
 
     public void Run() {
-        System.out.println(Charset.defaultCharset());
         if (simSteps == -1) {
             while (true) {
                 long startTime = System.nanoTime();

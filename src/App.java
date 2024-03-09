@@ -27,7 +27,7 @@ public class App {
         }
 
         try {
-            Simulation simulation = new barnesHut.SeqSimulation(numBodies, simSteps);
+            Simulation simulation = new normal.SeqSimulation(numBodies, simSteps);
             simulation.terminalCompatibility = terminalCompatibility;
 
             if (visualizationEnabled) {

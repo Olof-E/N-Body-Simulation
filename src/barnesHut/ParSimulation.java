@@ -163,23 +163,23 @@ public class ParSimulation extends Simulation {
 
                 bodies[i].velocity.x += deltaV.x;
                 bodies[i].velocity.y += deltaV.y;
-                bodies[i].position.x += deltaP.x / SIM_RADIUS;
-                bodies[i].position.y += deltaP.y / SIM_RADIUS;
+                bodies[i].position.x += deltaP.x;
+                bodies[i].position.y += deltaP.y;
                 bodies[i].force = new Vector2();
 
                 if (bodies[i].position.x <= 0) {
                     bodies[i].position.x = 1;
                     bodies[i].velocity.x = -bodies[i].velocity.x / 2;
-                } else if (bodies[i].position.x >= 1280) {
-                    bodies[i].position.x = 1279;
+                } else if (bodies[i].position.x >= SIM_RADIUS) {
+                    bodies[i].position.x = SIM_RADIUS - 1;
                     bodies[i].velocity.x = -bodies[i].velocity.x / 2;
                 }
 
                 if (bodies[i].position.y <= 0) {
                     bodies[i].position.y = 1;
                     bodies[i].velocity.y = -bodies[i].velocity.y / 2;
-                } else if (bodies[i].position.y >= 1280) {
-                    bodies[i].position.y = 1279;
+                } else if (bodies[i].position.y >= SIM_RADIUS) {
+                    bodies[i].position.y = SIM_RADIUS - 1;
                     bodies[i].velocity.y = -bodies[i].velocity.y / 2;
                 }
             }

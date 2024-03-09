@@ -142,8 +142,8 @@ public class ParSimulation extends Simulation {
             Vector2 dir;
             for (int i = start; i < end; i++) {
                 for (int j = i + 1; j < bodies.length; j++) {
-                    Vector2 scaledVecI = scaleUp(bodies[i].position);
-                    Vector2 scaledVecJ = scaleUp(bodies[j].position);
+                    Vector2 scaledVecI = bodies[i].position;
+                    Vector2 scaledVecJ = bodies[j].position;
 
                     dist = Vector2.dist(scaledVecI, scaledVecJ);
                     mag = (G_CONSTANT * bodies[i].mass * bodies[j].mass) / dist * dist;
@@ -169,23 +169,23 @@ public class ParSimulation extends Simulation {
 
                 bodies[i].velocity.x += deltaV.x;
                 bodies[i].velocity.y += deltaV.y;
-                bodies[i].position.x += deltaP.x / SIM_RADIUS;
-                bodies[i].position.y += deltaP.y / SIM_RADIUS;
+                bodies[i].position.x += deltaP.x;
+                bodies[i].position.y += deltaP.y;
                 bodies[i].force = new Vector2();
 
                 if (bodies[i].position.x <= 0) {
                     bodies[i].position.x = 1;
                     bodies[i].velocity.x = -bodies[i].velocity.x / 2;
-                } else if (bodies[i].position.x >= 1280) {
-                    bodies[i].position.x = 1279;
+                } else if (bodies[i].position.x >= SIM_RADIUS) {
+                    bodies[i].position.x = SIM_RADIUS - 1;
                     bodies[i].velocity.x = -bodies[i].velocity.x / 2;
                 }
 
                 if (bodies[i].position.y <= 0) {
                     bodies[i].position.y = 1;
                     bodies[i].velocity.y = -bodies[i].velocity.y / 2;
-                } else if (bodies[i].position.y >= 1280) {
-                    bodies[i].position.y = 1279;
+                } else if (bodies[i].position.y >= SIM_RADIUS) {
+                    bodies[i].position.y = SIM_RADIUS - 1;
                     bodies[i].velocity.y = -bodies[i].velocity.y / 2;
                 }
             }

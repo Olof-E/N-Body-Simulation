@@ -1,5 +1,6 @@
 package common;
 
+import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.geom.Ellipse2D;
@@ -26,7 +27,9 @@ public class Body {
             g2d.setColor(Color.YELLOW);
             size = 20;
         }
-        Ellipse2D.Double ell = new Ellipse2D.Double(position.x - size / 2.0, position.y - size / 2.0, size, size);
+
+        Ellipse2D.Double ell = new Ellipse2D.Double((position.x / Simulation.SIM_RADIUS) * 1280 - size / 2.0,
+                (position.y / Simulation.SIM_RADIUS) * 1280 - size / 2.0, size, size);
         g2d.fill(ell);
     }
 }

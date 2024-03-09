@@ -1,13 +1,9 @@
 package barnesHut;
 
-import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics2D;
-import java.awt.Stroke;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.Rectangle2D;
-
-import javax.swing.border.StrokeBorder;
 
 import common.*;
 
@@ -32,6 +28,13 @@ public class QuadTree {
 
     public void Draw(Graphics2D g2d) {
         root.Draw(g2d);
+    }
+
+    public void Reset() {
+        Vector2 pos = root.pos;
+        double width = root.width;
+
+        root = new Cell(pos, width);
     }
 
     private class Cell {
@@ -118,20 +121,20 @@ public class QuadTree {
                     if (children[i] != null && children[i].bodyCount > 0) {
                         children[i].ComputePseudoBodies();
                         aggregate = Vector2.add(aggregate,
-                                Vector2.mul(scaleUp(children[i].centerOfMass),
+                                Vector2.mul(children[i].centerOfMass,
                                         children[i].mass));
                         totalMass += children[i].mass;
                     }
                 }
-                centerOfMass = Vector2.div(aggregate, (totalMass * Simulation.SIM_RADIUS) / 1280);
+                centerOfMass = Vector2.div(aggregate, totalMass);
 
                 mass = totalMass;
             }
 
         }
 
-        private Vector2 scaleUp(Vector2 vec) {
-            return new Vector2((vec.x / 1280) * Simulation.SIM_RADIUS, (vec.y / 1280) * Simulation.SIM_RADIUS);
+        private Vector2 scaleDown(Vector2 vec) {
+            return new Vector2((vec.x / Simulation.SIM_RADIUS) * 1280, (vec.y / Simulation.SIM_RADIUS) * 1280);
         }
 
         public Vector2 calculateForce(Body otherBody) {
@@ -140,8 +143,8 @@ public class QuadTree {
             if (this.bodyCount == 1) {
                 if (otherBody == this.body)
                     return new Vector2();
-                Vector2 scaledVecI = scaleUp(otherBody.position);
-                Vector2 scaledVecJ = scaleUp(centerOfMass);
+                Vector2 scaledVecI = otherBody.position;
+                Vector2 scaledVecJ = centerOfMass;
 
                 double dist = Vector2.dist(centerOfMass, otherBody.position);
                 double mag = (Simulation.G_CONSTANT * mass * otherBody.mass) / dist * dist;
@@ -152,9 +155,9 @@ public class QuadTree {
                 double r = Vector2.dist(otherBody.position, centerOfMass);
                 double D = width;
 
-                if (D / r < 0.5) {
-                    Vector2 scaledVecI = scaleUp(otherBody.position);
-                    Vector2 scaledVecJ = scaleUp(centerOfMass);
+                if (D / r < 0.6) {
+                    Vector2 scaledVecI = otherBody.position;
+                    Vector2 scaledVecJ = centerOfMass;
 
                     double dist = Vector2.dist(centerOfMass, otherBody.position);
                     double mag = (Simulation.G_CONSTANT * mass * otherBody.mass) / dist * dist;
@@ -169,24 +172,27 @@ public class QuadTree {
                     }
                 }
             }
+            // System.out.printf("(%6f.3, %6f.3)\n", force.x, force.y);
             return force;
         }
 
         public void Draw(Graphics2D g2d) {
-            Rectangle2D quad = new Rectangle2D.Double(this.pos.x - this.width / 2.0, this.pos.y - this.width / 2.0,
-                    this.width, this.width);
-            g2d.setColor(Color.GREEN);
-            g2d.setStroke(new BasicStroke(1));
-            g2d.draw(quad);
-
+            Vector2 screenPos = scaleDown(this.pos);
+            double screenWidth = (this.width / Simulation.SIM_RADIUS) * 1280;
+            Rectangle2D quad = new Rectangle2D.Double(screenPos.x - screenWidth / 2.0, screenPos.y - screenWidth / 2.0,
+                    screenWidth, screenWidth);
             if (centerOfMass != null) {
+                Vector2 centOfMassScreen = scaleDown(centerOfMass);
                 g2d.setColor(Color.red);
-                g2d.setStroke(new BasicStroke(2.5f));
-                double dotWidth = Math.exp(this.width / (0.6 * 1280)) * 7.5;
-                Ellipse2D center = new Ellipse2D.Double(centerOfMass.x - dotWidth / 2.0,
-                        centerOfMass.y - dotWidth / 2.0, dotWidth, dotWidth);
+                double dotWidth = Math.exp(screenWidth / (0.6 * 1280)) * 7.5;
+                Ellipse2D center = new Ellipse2D.Double(centOfMassScreen.x - dotWidth / 2.0,
+                        centOfMassScreen.y - dotWidth / 2.0, dotWidth, dotWidth);
                 g2d.draw(center);
             }
+
+            g2d.setColor(Color.GREEN);
+            g2d.draw(quad);
+
             for (int i = 0; i < children.length; i++) {
                 if (children[i] != null)
                     children[i].Draw(g2d);
