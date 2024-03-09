@@ -1,6 +1,7 @@
 package barnesHut;
 
 import java.util.concurrent.BrokenBarrierException;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -25,38 +26,44 @@ public class ParSimulation extends Simulation {
      * bodies[2].velocity = new Vector2(-8e19, -15e15);
      */
 
-    public QuadTree quadTree;
     private ThreadPoolExecutor executor;
 
     public CyclicBarrier barrier;
+    public CyclicBarrier internalBarrier;
 
-    private int threadCount = 40;
+    public CountDownLatch latch;
+
+    private int threadCount = 12;
 
     public ParSimulation(int numBodies, int simSteps) {
         super(numBodies, simSteps);
 
-        quadTree = new QuadTree(new Vector2(1280, 1280));
+        quadTree = new QuadTree(new Vector2(SIM_RADIUS, SIM_RADIUS));
         for (int i = 0; i < bodies.length; i++) {
             quadTree.Insert(bodies[i]);
         }
 
-        executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(16);
-        barrier = new CyclicBarrier(16, null);
+        executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(threadCount);
+        internalBarrier = new CyclicBarrier(threadCount, null);
+        barrier = new CyclicBarrier(threadCount + 1, null);
     }
 
     @Override
     public void Run() {
         if (simSteps == -1) {
             while (true) {
+                quadTree.ComputePseudoBodies();
+
                 long startTime = System.nanoTime();
                 RunTasks();
-                try {
-                    barrier.await();
-                } catch (InterruptedException | BrokenBarrierException e) {
-                    e.printStackTrace();
-                }
+
                 if (Window.GetInstance().enabled)
                     Window.GetInstance().updateWindow();
+
+                quadTree.Reset();
+                for (int i = 0; i < bodies.length; i++) {
+                    quadTree.Insert(bodies[i]);
+                }
 
                 long endTime = System.nanoTime();
 
@@ -66,13 +73,20 @@ public class ParSimulation extends Simulation {
             }
         } else {
             for (int i = 0; i < simSteps; i++) {
+
                 long startTime = System.nanoTime();
+                quadTree.ComputePseudoBodies();
+
                 RunTasks();
-                try {
-                    barrier.await();
-                } catch (InterruptedException | BrokenBarrierException e) {
-                    e.printStackTrace();
+
+                if (Window.GetInstance().enabled)
+                    Window.GetInstance().updateWindow();
+
+                quadTree.Reset();
+                for (int j = 0; j < bodies.length; j++) {
+                    quadTree.Insert(bodies[j]);
                 }
+
                 long endTime = System.nanoTime();
 
                 double runTime = (endTime - startTime) / 1000000.0;
@@ -90,21 +104,26 @@ public class ParSimulation extends Simulation {
                 }
                 progBar += "]";
                 System.out.printf("%s  %d / %d | steps/s: %f \r", progBar, i + 1, simSteps, 1000.0 / runTime);
-                if (Window.GetInstance().enabled)
-                    Window.GetInstance().updateWindow();
+
             }
         }
     }
 
     private void RunTasks() {
         for (int i = 0; i < threadCount; i++) {
-            int start = i * bodies.length / threadCount;
+            int start = i * (int) Math.floor(bodies.length / threadCount);
             int end = start + bodies.length / threadCount;
             if (i == threadCount - 1) {
                 end = bodies.length;
             }
-            executor.execute(new WorkerTask(start, end));
+            executor.submit(new WorkerTask(start, end));
         }
+        try {
+            barrier.await();
+        } catch (InterruptedException | BrokenBarrierException e) {
+            e.printStackTrace();
+        }
+
     }
 
     @Override
@@ -127,25 +146,22 @@ public class ParSimulation extends Simulation {
 
         @Override
         public void run() {
+
             try {
-                // long startTime = System.nanoTime();
                 calculateForces();
-                barrier.await();
+                internalBarrier.await();
 
                 updatePositions();
+
                 barrier.await();
 
-                // long endTime = System.nanoTime();
-
-                // double runTime = (endTime - startTime) / 1000000.0;
-                // System.out.printf("Time: %f ms | FPS: %f\r", runTime, 1000.0 / runTime);
             } catch (Exception e) {
                 e.printStackTrace();
             }
         }
 
         private void calculateForces() {
-            quadTree.ComputePseudoBodies();
+
             for (int i = start; i < end; i++) {
                 bodies[i].force = quadTree.calculateForce(bodies[i]);
             }
@@ -183,11 +199,7 @@ public class ParSimulation extends Simulation {
                     bodies[i].velocity.y = -bodies[i].velocity.y / 2;
                 }
             }
-            quadTree = new QuadTree(new Vector2(1280, 1280));
-            for (int i = 0; i < bodies.length; i++) {
-                quadTree.Insert(bodies[i]);
-            }
-            Window.GetInstance().LinkData(bodies, quadTree);
+
         }
     }
 }

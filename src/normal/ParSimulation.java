@@ -23,18 +23,16 @@ public class ParSimulation extends Simulation {
     private ThreadPoolExecutor executor;
 
     public CyclicBarrier barrier;
+    public CyclicBarrier internalBarrier;
 
-    private int threadCount = 40;
+    private int threadCount = 12;
 
     public ParSimulation(int numBodies, int simSteps) {
         super(numBodies, simSteps);
 
-        executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(16);
-        barrier = new CyclicBarrier(16, null);
-    }
-
-    private Vector2 scaleUp(Vector2 vec) {
-        return new Vector2((vec.x / 1280) * SIM_RADIUS, (vec.y / 1280) * SIM_RADIUS);
+        executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(threadCount);
+        internalBarrier = new CyclicBarrier(threadCount, null);
+        barrier = new CyclicBarrier(threadCount + 1, null);
     }
 
     @Override
@@ -43,11 +41,7 @@ public class ParSimulation extends Simulation {
             while (true) {
                 long startTime = System.nanoTime();
                 RunTasks();
-                try {
-                    barrier.await();
-                } catch (InterruptedException | BrokenBarrierException e) {
-                    e.printStackTrace();
-                }
+
                 if (Window.GetInstance().enabled)
                     Window.GetInstance().updateWindow();
 
@@ -61,11 +55,7 @@ public class ParSimulation extends Simulation {
             for (int i = 0; i < simSteps; i++) {
                 long startTime = System.nanoTime();
                 RunTasks();
-                try {
-                    barrier.await();
-                } catch (InterruptedException | BrokenBarrierException e) {
-                    e.printStackTrace();
-                }
+
                 long endTime = System.nanoTime();
 
                 double runTime = (endTime - startTime) / 1000000.0;
@@ -91,12 +81,17 @@ public class ParSimulation extends Simulation {
 
     private void RunTasks() {
         for (int i = 0; i < threadCount; i++) {
-            int start = i * bodies.length / threadCount;
+            int start = i * (int) Math.floor(bodies.length / threadCount);
             int end = start + bodies.length / threadCount;
             if (i == threadCount - 1) {
                 end = bodies.length;
             }
             executor.execute(new WorkerTask(start, end));
+        }
+        try {
+            barrier.await();
+        } catch (InterruptedException | BrokenBarrierException e) {
+            e.printStackTrace();
         }
     }
 
@@ -123,7 +118,7 @@ public class ParSimulation extends Simulation {
             try {
                 // long startTime = System.nanoTime();
                 calculateForces();
-                barrier.await();
+                internalBarrier.await();
 
                 updatePositions();
                 barrier.await();

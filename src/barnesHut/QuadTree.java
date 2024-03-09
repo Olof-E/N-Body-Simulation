@@ -73,36 +73,31 @@ public class QuadTree {
                     }
                 }
             } else if (this.body != null) {
-                if (false) {
-                    if (this.body == null)
-                        this.body = newBody;
-                    return;
-                } else {
-                    children[0] = new Cell(new Vector2(pos.x - width / 4.0, pos.y - width / 4.0), width / 2.0);
-                    children[1] = new Cell(new Vector2(pos.x + width / 4.0, pos.y - width / 4.0), width / 2.0);
-                    children[2] = new Cell(new Vector2(pos.x - width / 4.0, pos.y + width / 4.0), width / 2.0);
-                    children[3] = new Cell(new Vector2(pos.x + width / 4.0, pos.y + width / 4.0), width / 2.0);
 
-                    if (children[0].Contains(this.body))
-                        children[0].Insert(this.body);
-                    else if (children[1].Contains(this.body))
-                        children[1].Insert(this.body);
-                    else if (children[2].Contains(this.body))
-                        children[2].Insert(this.body);
-                    else if (children[3].Contains(this.body))
-                        children[3].Insert(this.body);
+                children[0] = new Cell(new Vector2(pos.x - width / 4.0, pos.y - width / 4.0), width / 2.0);
+                children[1] = new Cell(new Vector2(pos.x + width / 4.0, pos.y - width / 4.0), width / 2.0);
+                children[2] = new Cell(new Vector2(pos.x - width / 4.0, pos.y + width / 4.0), width / 2.0);
+                children[3] = new Cell(new Vector2(pos.x + width / 4.0, pos.y + width / 4.0), width / 2.0);
 
-                    this.body = null;
+                if (children[0].Contains(this.body))
+                    children[0].Insert(this.body);
+                else if (children[1].Contains(this.body))
+                    children[1].Insert(this.body);
+                else if (children[2].Contains(this.body))
+                    children[2].Insert(this.body);
+                else if (children[3].Contains(this.body))
+                    children[3].Insert(this.body);
 
-                    if (children[0].Contains(newBody))
-                        children[0].Insert(newBody);
-                    else if (children[1].Contains(newBody))
-                        children[1].Insert(newBody);
-                    else if (children[2].Contains(newBody))
-                        children[2].Insert(newBody);
-                    else if (children[3].Contains(newBody))
-                        children[3].Insert(newBody);
-                }
+                this.body = null;
+
+                if (children[0].Contains(newBody))
+                    children[0].Insert(newBody);
+                else if (children[1].Contains(newBody))
+                    children[1].Insert(newBody);
+                else if (children[2].Contains(newBody))
+                    children[2].Insert(newBody);
+                else if (children[3].Contains(newBody))
+                    children[3].Insert(newBody);
             } else {
                 this.body = newBody;
             }

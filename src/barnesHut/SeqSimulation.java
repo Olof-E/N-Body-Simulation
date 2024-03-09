@@ -20,8 +20,6 @@ public class SeqSimulation extends Simulation {
      * bodies[2].velocity = new Vector2(-8e19, -15e15);
      */
 
-    public QuadTree quadTree;
-
     public SeqSimulation(int numBodies, int simSteps) {
         super(numBodies, simSteps);
 

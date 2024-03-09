@@ -70,7 +70,7 @@ public class SeqSimulation extends Simulation {
                 bodies[i].position.x = 1;
                 bodies[i].velocity.x = -bodies[i].velocity.x / 2;
             } else if (bodies[i].position.x >= SIM_RADIUS) {
-                bodies[i].position.x = SIM_RADIUS - 100;
+                bodies[i].position.x = SIM_RADIUS - 1;
                 bodies[i].velocity.x = -bodies[i].velocity.x / 2;
             }
 
@@ -78,7 +78,7 @@ public class SeqSimulation extends Simulation {
                 bodies[i].position.y = 1;
                 bodies[i].velocity.y = -bodies[i].velocity.y / 2;
             } else if (bodies[i].position.y >= SIM_RADIUS) {
-                bodies[i].position.y = SIM_RADIUS - 100;
+                bodies[i].position.y = SIM_RADIUS - 1;
                 bodies[i].velocity.y = -bodies[i].velocity.y / 2;
             }
         }

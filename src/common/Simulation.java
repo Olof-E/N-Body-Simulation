@@ -1,6 +1,6 @@
 package common;
 
-import java.nio.charset.Charset;
+import barnesHut.QuadTree;
 
 public abstract class Simulation {
     public static final double G_CONSTANT = 6.67545e-11;
@@ -8,6 +8,7 @@ public abstract class Simulation {
     public static final double DT = 1e-4;
 
     public Body[] bodies;
+    public QuadTree quadTree;
     public int simSteps = -1;
 
     public boolean terminalCompatibility = false;
@@ -23,7 +24,7 @@ public abstract class Simulation {
         }
     }
 
-    public void Run() {
+    public void Run() throws InterruptedException {
         if (simSteps == -1) {
             while (true) {
                 long startTime = System.nanoTime();

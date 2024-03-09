@@ -1,25 +1,35 @@
 import common.*;
 
 public class App {
+    public enum SimType {
+        SEQUENTIAL_STD,
+        SEQUENTIAL_PAR,
+        BARNES_STD,
+        BARNES_PAR
+    }
 
     private static int numBodies = 150;
     private static int simSteps = -1;
     private static boolean visualizationEnabled = false;
     private static boolean terminalCompatibility = false;
 
+    private static SimType simEngineType = SimType.SEQUENTIAL_PAR;
+
     public static void main(String[] args) throws Exception {
         int argI = 0;
 
         while (argI < args.length && (args[argI].startsWith("-") || args[argI].startsWith("--"))) {
-            if (args[argI].equals("-n") || args[argI].equals("--numBodies")) {
+            if (args[argI].equals("-n") || args[argI].equals("--num-bodies")) {
                 numBodies = Integer.parseInt(args[++argI]);
-            } else if (args[argI].equals("-s") || args[argI].equals("--simSteps")) {
+            } else if (args[argI].equals("-s") || args[argI].equals("--sim-steps")) {
                 simSteps = Integer.parseInt(args[++argI]);
 
             } else if (args[argI].equals("-w") || args[argI].equals("--window")) {
                 visualizationEnabled = true;
             } else if (args[argI].equals("-tc") || args[argI].equals("--terminal-compatibility")) {
                 terminalCompatibility = true;
+            } else if (args[argI].equals("-t") || args[argI].equals("--engine-type")) {
+                simEngineType = SimType.values()[Integer.parseInt(args[++argI]) - 1];
             } else {
                 cmdHelp();
             }
@@ -27,15 +37,21 @@ public class App {
         }
 
         try {
-            Simulation simulation = new normal.SeqSimulation(numBodies, simSteps);
+            Simulation simulation;
+            if (simEngineType == SimType.SEQUENTIAL_STD)
+                simulation = new normal.SeqSimulation(numBodies, simSteps);
+            else if (simEngineType == SimType.SEQUENTIAL_PAR)
+                simulation = new normal.ParSimulation(numBodies, simSteps);
+            else if (simEngineType == SimType.BARNES_STD)
+                simulation = new barnesHut.SeqSimulation(numBodies, simSteps);
+            else
+                simulation = new barnesHut.ParSimulation(numBodies, simSteps);
+
             simulation.terminalCompatibility = terminalCompatibility;
 
             if (visualizationEnabled) {
                 Window.GetInstance().enabled = true;
-                if (simulation.getClass().getPackageName() == "barnesHut")
-                    Window.GetInstance().LinkData(simulation.bodies, ((barnesHut.SeqSimulation) simulation).quadTree);
-
-                Window.GetInstance().LinkData(simulation.bodies);
+                Window.GetInstance().LinkData(simulation.bodies, simulation.quadTree);
             }
 
             simulation.Run();
@@ -44,6 +60,7 @@ public class App {
                 Window.GetInstance().Close();
 
             System.out.println("\nSimulation finished");
+            System.exit(0);
         } catch (Exception e) {
             System.out.println("\nSimulation failed");
             System.err.println("Error shown below: ");

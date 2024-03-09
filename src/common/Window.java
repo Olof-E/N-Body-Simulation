@@ -37,10 +37,6 @@ public class Window {
         return windowInstance;
     }
 
-    public void LinkData(Body[] bodies) {
-        canvas.bodies = bodies;
-    }
-
     public void LinkData(Body[] bodies, QuadTree quadTree) {
         canvas.bodies = bodies;
         canvas.quadTree = quadTree;
@@ -75,7 +71,7 @@ public class Window {
             g2d.fill(rec);
 
             drawBodies(g2d);
-            if (quadTree != null)
+            if (quadTree != null && false)
                 quadTree.Draw(g2d);
 
             // long endTime = System.nanoTime();
