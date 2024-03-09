@@ -50,6 +50,7 @@ public class App {
             simulation.terminalCompatibility = terminalCompatibility;
 
             if (visualizationEnabled) {
+                Window.GetInstance().Init(new Vector2(1280, 1280));
                 Window.GetInstance().enabled = true;
                 Window.GetInstance().LinkData(simulation.bodies, simulation.quadTree);
             }

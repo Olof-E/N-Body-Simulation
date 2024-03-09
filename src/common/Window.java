@@ -16,13 +16,16 @@ public class Window {
     private WindowCanvas canvas;
 
     private Window() {
+
+    }
+
+    public void Init(Vector2 windowDims) {
         window = new JFrame("Simulation");
         window.setLayout(new BorderLayout());
-        Vector2 windowSize = new Vector2(1280, 1280);
-        canvas = new WindowCanvas(windowSize);
-        canvas.setPreferredSize(new Dimension((int) windowSize.x, (int) windowSize.y));
+        canvas = new WindowCanvas(windowDims);
+        canvas.setPreferredSize(new Dimension((int) windowDims.x, (int) windowDims.y));
         window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        // window.setResizable(false);
+        window.setResizable(false);
 
         window.add(canvas);
         window.pack();

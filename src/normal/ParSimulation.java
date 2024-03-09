@@ -36,50 +36,11 @@ public class ParSimulation extends Simulation {
     }
 
     @Override
-    public void Run() {
-        if (simSteps == -1) {
-            while (true) {
-                long startTime = System.nanoTime();
-                RunTasks();
-
-                if (Window.GetInstance().enabled)
-                    Window.GetInstance().updateWindow();
-
-                long endTime = System.nanoTime();
-
-                double runTime = (endTime - startTime) / 1000000.0;
-
-                System.out.printf("Compute Time: %f ms | steps/s: %f \r", runTime, 1000.0 / runTime);
-            }
-        } else {
-            for (int i = 0; i < simSteps; i++) {
-                long startTime = System.nanoTime();
-                RunTasks();
-
-                long endTime = System.nanoTime();
-
-                double runTime = (endTime - startTime) / 1000000.0;
-
-                char remaining = terminalCompatibility ? ' ' : '░';
-                char finished = terminalCompatibility ? '#' : '█';
-
-                String progBar = "[";
-                double progress = i / (double) simSteps;
-                for (int j = 0; j < 40; j++) {
-                    if (j / 40.0 < progress)
-                        progBar += finished;
-                    else
-                        progBar += remaining;
-                }
-                progBar += "]";
-                System.out.printf("%s  %d / %d | steps/s: %f \r", progBar, i + 1, simSteps, 1000.0 / runTime);
-                if (Window.GetInstance().enabled)
-                    Window.GetInstance().updateWindow();
-            }
-        }
+    protected void calculateForces() {
     }
 
-    private void RunTasks() {
+    @Override
+    protected void updatePositions() {
         for (int i = 0; i < threadCount; i++) {
             int start = i * (int) Math.floor(bodies.length / threadCount);
             int end = start + bodies.length / threadCount;
@@ -93,14 +54,6 @@ public class ParSimulation extends Simulation {
         } catch (InterruptedException | BrokenBarrierException e) {
             e.printStackTrace();
         }
-    }
-
-    @Override
-    protected void calculateForces() {
-    }
-
-    @Override
-    protected void updatePositions() {
     }
 
     public class WorkerTask implements Runnable {

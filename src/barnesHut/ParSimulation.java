@@ -49,67 +49,13 @@ public class ParSimulation extends Simulation {
     }
 
     @Override
-    public void Run() {
-        if (simSteps == -1) {
-            while (true) {
-                quadTree.ComputePseudoBodies();
-
-                long startTime = System.nanoTime();
-                RunTasks();
-
-                if (Window.GetInstance().enabled)
-                    Window.GetInstance().updateWindow();
-
-                quadTree.Reset();
-                for (int i = 0; i < bodies.length; i++) {
-                    quadTree.Insert(bodies[i]);
-                }
-
-                long endTime = System.nanoTime();
-
-                double runTime = (endTime - startTime) / 1000000.0;
-
-                System.out.printf("Compute Time: %f ms | steps/s: %f \r", runTime, 1000.0 / runTime);
-            }
-        } else {
-            for (int i = 0; i < simSteps; i++) {
-
-                long startTime = System.nanoTime();
-                quadTree.ComputePseudoBodies();
-
-                RunTasks();
-
-                if (Window.GetInstance().enabled)
-                    Window.GetInstance().updateWindow();
-
-                quadTree.Reset();
-                for (int j = 0; j < bodies.length; j++) {
-                    quadTree.Insert(bodies[j]);
-                }
-
-                long endTime = System.nanoTime();
-
-                double runTime = (endTime - startTime) / 1000000.0;
-
-                char remaining = terminalCompatibility ? ' ' : '░';
-                char finished = terminalCompatibility ? '#' : '█';
-
-                String progBar = "[";
-                double progress = i / (double) simSteps;
-                for (int j = 0; j < 40; j++) {
-                    if (j / 40.0 < progress)
-                        progBar += finished;
-                    else
-                        progBar += remaining;
-                }
-                progBar += "]";
-                System.out.printf("%s  %d / %d | steps/s: %f \r", progBar, i + 1, simSteps, 1000.0 / runTime);
-
-            }
-        }
+    protected void calculateForces() {
     }
 
-    private void RunTasks() {
+    @Override
+    protected void updatePositions() {
+        quadTree.ComputePseudoBodies();
+
         for (int i = 0; i < threadCount; i++) {
             int start = i * (int) Math.floor(bodies.length / threadCount);
             int end = start + bodies.length / threadCount;
@@ -124,14 +70,10 @@ public class ParSimulation extends Simulation {
             e.printStackTrace();
         }
 
-    }
-
-    @Override
-    protected void calculateForces() {
-    }
-
-    @Override
-    protected void updatePositions() {
+        quadTree.Reset();
+        for (int j = 0; j < bodies.length; j++) {
+            quadTree.Insert(bodies[j]);
+        }
     }
 
     public class WorkerTask implements Runnable {

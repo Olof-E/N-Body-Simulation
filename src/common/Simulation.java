@@ -31,14 +31,14 @@ public abstract class Simulation {
                 calculateForces();
                 updatePositions();
 
-                if (Window.GetInstance().enabled)
-                    Window.GetInstance().updateWindow();
-
                 long endTime = System.nanoTime();
 
                 double runTime = (endTime - startTime) / 1000000.0;
 
                 System.out.printf("Compute Time: %f ms | steps/s: %f \r", runTime, 1000.0 / runTime);
+
+                if (Window.GetInstance().enabled)
+                    Window.GetInstance().updateWindow();
             }
         } else {
             for (int i = 0; i < simSteps; i++) {
