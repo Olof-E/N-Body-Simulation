@@ -22,12 +22,8 @@ public class ParSimulation extends Simulation {
      * bodies[2].velocity = new Vector2(-8e19, -15e15);
      */
 
-    private ThreadPoolExecutor executor;
-
     public CyclicBarrier barrier;
     public CyclicBarrier internalBarrier;
-
-    public CountDownLatch latch;
 
     public AtomicBoolean finished;
 
@@ -44,7 +40,6 @@ public class ParSimulation extends Simulation {
         }
 
         workers = new Thread[threadCount];
-        // executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(threadCount);
 
         internalBarrier = new CyclicBarrier(threadCount, null);
         barrier = new CyclicBarrier(threadCount + 1, null);
@@ -54,6 +49,12 @@ public class ParSimulation extends Simulation {
             workers[j] = new Thread(new WorkerTask(j));
             workers[j].start();
         }
+    }
+
+    @Override
+    public void Run() {
+        super.Run();
+        finished.set(true);
     }
 
     @Override
@@ -73,13 +74,9 @@ public class ParSimulation extends Simulation {
 
     public class WorkerTask implements Runnable {
 
-        int start;
-        int end;
         int id;
 
         public WorkerTask(int id) {
-            this.start = start;
-            this.end = end;
             this.id = id;
         }
 
