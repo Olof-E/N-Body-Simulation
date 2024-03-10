@@ -5,12 +5,11 @@ import barnesHut.QuadTree;
 public abstract class Simulation {
     public static final double G_CONSTANT = 6.67545e-11;
     public static final double SIM_RADIUS = 1.4959e17;
-    public static final double DT = 1e-5;
+    public static final double DT = 5e-5;
 
     public Body[] bodies;
     public QuadTree quadTree;
     public int simSteps = -1;
-
     public boolean terminalCompatibility = false;
 
     public Simulation(int numBodies, int simSteps) {
@@ -49,21 +48,23 @@ public abstract class Simulation {
                 long endTime = System.nanoTime();
 
                 double runTime = (endTime - startTime) / 1000000.0;
-
-                char remaining = terminalCompatibility ? ' ' : '░';
-                char finished = terminalCompatibility ? '#' : '█';
-
-                String progBar = " [";
-                double progress = i / (double) simSteps;
-                for (int j = 0; j < 40; j++) {
-                    if (j / 40.0 < progress)
-                        progBar += finished;
-                    else
-                        progBar += remaining;
-                }
-                progBar += "]";
                 times[i] = runTime;
-                System.out.printf("%s  %d / %d | steps/s: %.1f \r", progBar, i + 1, simSteps, 1000.0 / runTime);
+
+                if (i % 25 == 0 || i == simSteps - 1) {
+                    char remaining = terminalCompatibility ? ' ' : '░';
+                    char finished = terminalCompatibility ? '#' : '█';
+
+                    String progBar = " [";
+                    double progress = i / (double) simSteps;
+                    for (int j = 0; j < 40; j++) {
+                        if (j / 40.0 < progress)
+                            progBar += finished;
+                        else
+                            progBar += remaining;
+                    }
+                    progBar += "]";
+                    System.out.printf("%s  %d / %d | steps/s: %.1f \r", progBar, i + 1, simSteps, 1000.0 / runTime);
+                }
                 if (Window.GetInstance().enabled)
                     Window.GetInstance().updateWindow();
             }

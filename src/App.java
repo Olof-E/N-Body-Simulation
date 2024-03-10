@@ -10,6 +10,7 @@ public class App {
 
     private static int numBodies = 150;
     private static int simSteps = -1;
+    private static int threadCount = 2;
     private static boolean visualizationEnabled = false;
     private static boolean terminalCompatibility = false;
 
@@ -24,12 +25,14 @@ public class App {
             } else if (args[argI].equals("-s") || args[argI].equals("--sim-steps")) {
                 simSteps = Integer.parseInt(args[++argI]);
 
-            } else if (args[argI].equals("-w") || args[argI].equals("--window")) {
+            } else if (args[argI].equals("-win") || args[argI].equals("--window")) {
                 visualizationEnabled = true;
             } else if (args[argI].equals("-tc") || args[argI].equals("--terminal-compatibility")) {
                 terminalCompatibility = true;
             } else if (args[argI].equals("-t") || args[argI].equals("--engine-type")) {
                 simEngineType = SimType.values()[Integer.parseInt(args[++argI]) - 1];
+            } else if (args[argI].equals("-w") || args[argI].equals("--thread-count")) {
+                threadCount = Integer.parseInt(args[++argI]);
             } else {
                 cmdHelp();
             }
@@ -41,11 +44,11 @@ public class App {
             if (simEngineType == SimType.SEQUENTIAL_STD)
                 simulation = new normal.SeqSimulation(numBodies, simSteps);
             else if (simEngineType == SimType.SEQUENTIAL_PAR)
-                simulation = new normal.ParSimulation(numBodies, simSteps);
+                simulation = new normal.ParSimulation(numBodies, simSteps, threadCount);
             else if (simEngineType == SimType.BARNES_STD)
                 simulation = new barnesHut.SeqSimulation(numBodies, simSteps);
             else
-                simulation = new barnesHut.ParSimulation(numBodies, simSteps);
+                simulation = new barnesHut.ParSimulation(numBodies, simSteps, threadCount);
 
             simulation.terminalCompatibility = terminalCompatibility;
 

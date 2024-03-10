@@ -5,9 +5,11 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import common.Simulation;
 import common.Vector2;
+import common.Window;
 
 public class ParSimulation extends Simulation {
 
@@ -32,19 +34,31 @@ public class ParSimulation extends Simulation {
 
     public CountDownLatch latch;
 
-    private int threadCount = 4;
+    public AtomicBoolean finished;
 
-    public ParSimulation(int numBodies, int simSteps) {
+    private Thread[] workers;
+    private int threadCount;
+
+    public ParSimulation(int numBodies, int simSteps, int threadCount) {
         super(numBodies, simSteps);
+        this.threadCount = threadCount;
 
         quadTree = new QuadTree(new Vector2(SIM_RADIUS, SIM_RADIUS));
         for (int i = 0; i < bodies.length; i++) {
             quadTree.Insert(bodies[i]);
         }
 
-        executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(threadCount);
+        workers = new Thread[threadCount];
+        // executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(threadCount);
+
         internalBarrier = new CyclicBarrier(threadCount, null);
         barrier = new CyclicBarrier(threadCount + 1, null);
+        finished = new AtomicBoolean(false);
+
+        for (int j = 0; j < workers.length; j++) {
+            workers[j] = new Thread(new WorkerTask(j));
+            workers[j].start();
+        }
     }
 
     @Override
@@ -55,15 +69,9 @@ public class ParSimulation extends Simulation {
     protected void updatePositions() {
         quadTree.ComputePseudoBodies();
 
-        for (int i = 0; i < threadCount; i++) {
-            int start = i * (int) Math.floor(bodies.length / threadCount);
-            int end = start + bodies.length / threadCount;
-            if (i == threadCount - 1) {
-                end = bodies.length;
-            }
-            executor.submit(new WorkerTask(start, end));
-        }
         try {
+            barrier.await();
+
             barrier.await();
         } catch (InterruptedException | BrokenBarrierException e) {
             e.printStackTrace();
@@ -73,37 +81,44 @@ public class ParSimulation extends Simulation {
         for (int j = 0; j < bodies.length; j++) {
             quadTree.Insert(bodies[j]);
         }
+
     }
 
     public class WorkerTask implements Runnable {
 
         int start;
         int end;
+        int id;
 
-        public WorkerTask(int start, int end) {
+        public WorkerTask(int id) {
             this.start = start;
             this.end = end;
+            this.id = id;
         }
 
         @Override
         public void run() {
+            while (!finished.get()) {
 
-            try {
-                calculateForces();
-                internalBarrier.await();
+                try {
+                    barrier.await();
+                    calculateForces();
 
-                updatePositions();
+                    internalBarrier.await();
 
-                barrier.await();
+                    updatePositions();
 
-            } catch (Exception e) {
-                e.printStackTrace();
+                    barrier.await();
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
         }
 
         private void calculateForces() {
 
-            for (int i = start; i < end; i++) {
+            for (int i = id; i < bodies.length; i += threadCount) {
                 bodies[i].force = quadTree.calculateForce(bodies[i]);
             }
         }
@@ -111,7 +126,7 @@ public class ParSimulation extends Simulation {
         private void updatePositions() {
             Vector2 deltaV;
             Vector2 deltaP;
-            for (int i = start; i < end; i++) {
+            for (int i = 0; i < bodies.length; i++) {
 
                 deltaV = Vector2.div(bodies[i].force, bodies[i].mass / DT);
                 deltaP = Vector2.mul(Vector2.add(bodies[i].velocity, Vector2.div(deltaV, 2)), DT);
@@ -138,6 +153,7 @@ public class ParSimulation extends Simulation {
                     bodies[i].velocity.y = -bodies[i].velocity.y / 2;
                 }
             }
+
         }
     }
 }

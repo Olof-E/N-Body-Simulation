@@ -1,7 +1,9 @@
 package normal;
 
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 
+import barnesHut.QuadTree;
 import common.*;
 
 public class ParSimulation extends Simulation {
@@ -25,14 +27,33 @@ public class ParSimulation extends Simulation {
     public CyclicBarrier barrier;
     public CyclicBarrier internalBarrier;
 
-    private int threadCount = 4;
+    public CountDownLatch latch;
 
-    public ParSimulation(int numBodies, int simSteps) {
+    public AtomicBoolean finished;
+
+    private Thread[] workers;
+    private int threadCount;
+
+    public ParSimulation(int numBodies, int simSteps, int threadCount) {
         super(numBodies, simSteps);
+        this.threadCount = threadCount;
 
-        executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(threadCount);
+        quadTree = new QuadTree(new Vector2(SIM_RADIUS, SIM_RADIUS));
+        for (int i = 0; i < bodies.length; i++) {
+            quadTree.Insert(bodies[i]);
+        }
+
+        workers = new Thread[threadCount];
+        // executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(threadCount);
+
         internalBarrier = new CyclicBarrier(threadCount, null);
         barrier = new CyclicBarrier(threadCount + 1, null);
+        finished = new AtomicBoolean(false);
+
+        for (int j = 0; j < workers.length; j++) {
+            workers[j] = new Thread(new WorkerTask(j));
+            workers[j].start();
+        }
     }
 
     @Override
@@ -41,15 +62,9 @@ public class ParSimulation extends Simulation {
 
     @Override
     protected void updatePositions() {
-        for (int i = 0; i < threadCount; i++) {
-            int start = i * (int) Math.floor(bodies.length / threadCount);
-            int end = start + bodies.length / threadCount;
-            if (i == threadCount - 1) {
-                end = bodies.length;
-            }
-            executor.execute(new WorkerTask(start, end));
-        }
         try {
+            barrier.await();
+
             barrier.await();
         } catch (InterruptedException | BrokenBarrierException e) {
             e.printStackTrace();
@@ -60,30 +75,38 @@ public class ParSimulation extends Simulation {
 
         int start;
         int end;
+        int id;
 
-        public WorkerTask(int start, int end) {
+        public WorkerTask(int id) {
             this.start = start;
             this.end = end;
+            this.id = id;
         }
 
         @Override
         public void run() {
-            try {
-                calculateForces();
-                internalBarrier.await();
+            while (!finished.get()) {
 
-                updatePositions();
-                barrier.await();
+                try {
+                    barrier.await();
+                    calculateForces();
 
-            } catch (Exception e) {
-                e.printStackTrace();
+                    internalBarrier.await();
+
+                    updatePositions();
+
+                    barrier.await();
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
         }
 
         private void calculateForces() {
             double dist, mag;
             Vector2 dir;
-            for (int i = start; i < end; i++) {
+            for (int i = id; i < bodies.length; i += threadCount) {
                 for (int j = i + 1; j < bodies.length; j++) {
                     Vector2 scaledVecI = bodies[i].position;
                     Vector2 scaledVecJ = bodies[j].position;
@@ -103,7 +126,7 @@ public class ParSimulation extends Simulation {
         private void updatePositions() {
             Vector2 deltaV;
             Vector2 deltaP;
-            for (int i = start; i < end; i++) {
+            for (int i = id; i < bodies.length; i += threadCount) {
 
                 deltaV = Vector2.div(bodies[i].force, bodies[i].mass / DT);
                 deltaP = Vector2.mul(Vector2.add(bodies[i].velocity, Vector2.div(deltaV, 2)), DT);
@@ -130,6 +153,8 @@ public class ParSimulation extends Simulation {
                     bodies[i].velocity.y = -bodies[i].velocity.y / 2;
                 }
             }
+
         }
     }
+
 }
