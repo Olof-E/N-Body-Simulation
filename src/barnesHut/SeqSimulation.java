@@ -43,10 +43,8 @@ public class SeqSimulation extends Simulation {
         Vector2 deltaP;
         for (int i = 0; i < bodies.length; i++) {
 
-            deltaV = new Vector2(bodies[i].force.x / bodies[i].mass * DT, bodies[i].force.y / bodies[i].mass * DT);
-            deltaP = new Vector2(
-                    (bodies[i].velocity.x + deltaV.x / 2) * DT,
-                    (bodies[i].velocity.y + deltaV.y / 2) * DT);
+            deltaV = Vector2.div(bodies[i].force, bodies[i].mass / DT);
+            deltaP = Vector2.mul(Vector2.add(bodies[i].velocity, Vector2.div(deltaV, 2)), DT);
 
             bodies[i].velocity.x += deltaV.x;
             bodies[i].velocity.y += deltaV.y;

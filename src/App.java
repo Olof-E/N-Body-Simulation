@@ -60,7 +60,6 @@ public class App {
             if (visualizationEnabled)
                 Window.GetInstance().Close();
 
-            System.out.println("\nSimulation finished");
             System.exit(0);
         } catch (Exception e) {
             System.out.println("\nSimulation failed");

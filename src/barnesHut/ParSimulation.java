@@ -8,7 +8,6 @@ import java.util.concurrent.ThreadPoolExecutor;
 
 import common.Simulation;
 import common.Vector2;
-import common.Window;
 
 public class ParSimulation extends Simulation {
 
@@ -33,7 +32,7 @@ public class ParSimulation extends Simulation {
 
     public CountDownLatch latch;
 
-    private int threadCount = 12;
+    private int threadCount = 4;
 
     public ParSimulation(int numBodies, int simSteps) {
         super(numBodies, simSteps);
@@ -114,10 +113,8 @@ public class ParSimulation extends Simulation {
             Vector2 deltaP;
             for (int i = start; i < end; i++) {
 
-                deltaV = new Vector2(bodies[i].force.x / bodies[i].mass * DT, bodies[i].force.y / bodies[i].mass * DT);
-                deltaP = new Vector2(
-                        (bodies[i].velocity.x + deltaV.x / 2) * DT,
-                        (bodies[i].velocity.y + deltaV.y / 2) * DT);
+                deltaV = Vector2.div(bodies[i].force, bodies[i].mass / DT);
+                deltaP = Vector2.mul(Vector2.add(bodies[i].velocity, Vector2.div(deltaV, 2)), DT);
 
                 bodies[i].velocity.x += deltaV.x;
                 bodies[i].velocity.y += deltaV.y;
@@ -141,7 +138,6 @@ public class ParSimulation extends Simulation {
                     bodies[i].velocity.y = -bodies[i].velocity.y / 2;
                 }
             }
-
         }
     }
 }

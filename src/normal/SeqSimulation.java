@@ -23,10 +23,6 @@ public class SeqSimulation extends Simulation {
         super(numBodies, simSteps);
     }
 
-    private Vector2 scaleUp(Vector2 vec) {
-        return new Vector2((vec.x / 1280) * SIM_RADIUS, (vec.y / 1280) * SIM_RADIUS);
-    }
-
     @Override
     protected void calculateForces() {
         double dist, mag;
@@ -45,7 +41,6 @@ public class SeqSimulation extends Simulation {
                 bodies[i].force.y += mag * dir.y / dist;
                 bodies[j].force.y -= mag * dir.y / dist;
             }
-            // System.out.printf("(%6f.3, %6f.3)\n", bodies[i].force.x, bodies[i].force.y);
         }
     }
 
@@ -55,10 +50,8 @@ public class SeqSimulation extends Simulation {
         Vector2 deltaP;
         for (int i = 0; i < bodies.length; i++) {
 
-            deltaV = new Vector2(bodies[i].force.x / bodies[i].mass * DT, bodies[i].force.y / bodies[i].mass * DT);
-            deltaP = new Vector2(
-                    (bodies[i].velocity.x + deltaV.x / 2) * DT,
-                    (bodies[i].velocity.y + deltaV.y / 2) * DT);
+            deltaV = Vector2.div(bodies[i].force, bodies[i].mass / DT);
+            deltaP = Vector2.mul(Vector2.add(bodies[i].velocity, Vector2.div(deltaV, 2)), DT);
 
             bodies[i].velocity.x += deltaV.x;
             bodies[i].velocity.y += deltaV.y;

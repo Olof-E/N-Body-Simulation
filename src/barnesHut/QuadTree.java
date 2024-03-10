@@ -150,7 +150,7 @@ public class QuadTree {
                 double r = Vector2.dist(otherBody.position, centerOfMass);
                 double D = width;
 
-                if (D / r < 0.6) {
+                if (D / r < 1) {
                     Vector2 scaledVecI = otherBody.position;
                     Vector2 scaledVecJ = centerOfMass;
 
@@ -167,7 +167,6 @@ public class QuadTree {
                     }
                 }
             }
-            // System.out.printf("(%6f.3, %6f.3)\n", force.x, force.y);
             return force;
         }
 

@@ -5,7 +5,7 @@ import barnesHut.QuadTree;
 public abstract class Simulation {
     public static final double G_CONSTANT = 6.67545e-11;
     public static final double SIM_RADIUS = 1.4959e17;
-    public static final double DT = 1e-4;
+    public static final double DT = 1e-5;
 
     public Body[] bodies;
     public QuadTree quadTree;
@@ -24,7 +24,7 @@ public abstract class Simulation {
         }
     }
 
-    public void Run() throws InterruptedException {
+    public void Run() {
         if (simSteps == -1) {
             while (true) {
                 long startTime = System.nanoTime();
@@ -35,12 +35,13 @@ public abstract class Simulation {
 
                 double runTime = (endTime - startTime) / 1000000.0;
 
-                System.out.printf("Compute Time: %f ms | steps/s: %f \r", runTime, 1000.0 / runTime);
+                System.out.printf("Compute Time: %f ms | steps/s: %.1f \r", runTime, 1000.0 / runTime);
 
                 if (Window.GetInstance().enabled)
                     Window.GetInstance().updateWindow();
             }
         } else {
+            double[] times = new double[simSteps];
             for (int i = 0; i < simSteps; i++) {
                 long startTime = System.nanoTime();
                 calculateForces();
@@ -52,7 +53,7 @@ public abstract class Simulation {
                 char remaining = terminalCompatibility ? ' ' : '░';
                 char finished = terminalCompatibility ? '#' : '█';
 
-                String progBar = "[";
+                String progBar = " [";
                 double progress = i / (double) simSteps;
                 for (int j = 0; j < 40; j++) {
                     if (j / 40.0 < progress)
@@ -61,10 +62,19 @@ public abstract class Simulation {
                         progBar += remaining;
                 }
                 progBar += "]";
-                System.out.printf("%s  %d / %d | steps/s: %f \r", progBar, i + 1, simSteps, 1000.0 / runTime);
+                times[i] = runTime;
+                System.out.printf("%s  %d / %d | steps/s: %.1f \r", progBar, i + 1, simSteps, 1000.0 / runTime);
                 if (Window.GetInstance().enabled)
                     Window.GetInstance().updateWindow();
             }
+
+            double totalTime = 0;
+            for (int i = 0; i < times.length; i++) {
+                totalTime += times[i];
+            }
+            System.out.println("\n|==============================================================================|");
+            System.out.printf(" Avg. time/step: %.3f ms | ", totalTime / simSteps);
+            System.out.printf("Total execution time: %.3f s\n", totalTime / 1000.0);
         }
     }
 
