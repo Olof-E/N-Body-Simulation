@@ -56,6 +56,7 @@ public class QuadTree {
             this.width = width;
         }
 
+        // Check if point is within cell
         public boolean Contains(Body body) {
             Vector2 p = body.position;
             return p.x <= pos.x + width / 2.0
@@ -64,8 +65,10 @@ public class QuadTree {
                     && p.y <= pos.y + width / 2.0;
         }
 
+        // Insert a point into current cell
         public void Insert(Body newBody) {
             if (bodyCount > 1) {
+                // Insert new body into correct child
                 for (int i = 0; i < children.length; i++) {
                     if (children[i].Contains(newBody)) {
                         children[i].Insert(newBody);
@@ -74,11 +77,13 @@ public class QuadTree {
                 }
             } else if (this.body != null) {
 
+                // Create this cells children
                 children[0] = new Cell(new Vector2(pos.x - width / 4.0, pos.y - width / 4.0), width / 2.0);
                 children[1] = new Cell(new Vector2(pos.x + width / 4.0, pos.y - width / 4.0), width / 2.0);
                 children[2] = new Cell(new Vector2(pos.x - width / 4.0, pos.y + width / 4.0), width / 2.0);
                 children[3] = new Cell(new Vector2(pos.x + width / 4.0, pos.y + width / 4.0), width / 2.0);
 
+                // Insert this cells previous body into correct child
                 if (children[0].Contains(this.body))
                     children[0].Insert(this.body);
                 else if (children[1].Contains(this.body))
@@ -90,6 +95,7 @@ public class QuadTree {
 
                 this.body = null;
 
+                // Insert new body into correct child
                 if (children[0].Contains(newBody))
                     children[0].Insert(newBody);
                 else if (children[1].Contains(newBody))
@@ -104,6 +110,7 @@ public class QuadTree {
             this.bodyCount++;
         }
 
+        // Compute the pseudo body of this cell
         public void ComputePseudoBodies() {
             Vector2 aggregate = new Vector2();
             double totalMass = 0;
@@ -128,35 +135,35 @@ public class QuadTree {
 
         }
 
+        // Convert simulation space to screen space
         private Vector2 scaleDown(Vector2 vec) {
             return new Vector2((vec.x / Simulation.SIM_RADIUS) * 1280, (vec.y / Simulation.SIM_RADIUS) * 1280);
         }
 
+        // Calculate the force applied to a given body
         public Vector2 calculateForce(Body otherBody) {
             Vector2 force = new Vector2();
 
             if (this.bodyCount == 1) {
                 if (otherBody == this.body)
                     return new Vector2();
-                Vector2 scaledVecI = otherBody.position;
-                Vector2 scaledVecJ = centerOfMass;
 
                 double dist = Vector2.dist(centerOfMass, otherBody.position);
+                // Newtons gravitational law
                 double mag = (Simulation.G_CONSTANT * mass * otherBody.mass) / dist * dist;
-                Vector2 dir = Vector2.sub(scaledVecJ, scaledVecI);
+                Vector2 dir = Vector2.sub(centerOfMass, otherBody.position);
 
                 force = new Vector2(mag * dir.x / dist, mag * dir.y / dist);
-            } else if (this.bodyCount != 0) {
+            } else if (this.bodyCount > 1) {
                 double r = Vector2.dist(otherBody.position, centerOfMass);
                 double D = width;
 
-                if (D / r < 1) {
-                    Vector2 scaledVecI = otherBody.position;
-                    Vector2 scaledVecJ = centerOfMass;
-
+                // Theta condition, should we approximate
+                if (D / r < 1.2) {
                     double dist = Vector2.dist(centerOfMass, otherBody.position);
+                    // Newtons gravitational law
                     double mag = (Simulation.G_CONSTANT * mass * otherBody.mass) / dist * dist;
-                    Vector2 dir = Vector2.sub(scaledVecJ, scaledVecI);
+                    Vector2 dir = Vector2.sub(centerOfMass, otherBody.position);
 
                     force = new Vector2(mag * dir.x / dist, mag * dir.y / dist);
                 } else {
@@ -170,15 +177,17 @@ public class QuadTree {
             return force;
         }
 
+        // Draw the quad tree structure to the canvas
         public void Draw(Graphics2D g2d) {
             Vector2 screenPos = scaleDown(this.pos);
-            double screenWidth = (this.width / Simulation.SIM_RADIUS) * 1280;
-            Rectangle2D quad = new Rectangle2D.Double(screenPos.x - screenWidth / 2.0, screenPos.y - screenWidth / 2.0,
-                    screenWidth, screenWidth);
+            double onScreenWidth = (this.width / Simulation.SIM_RADIUS) * 1280;
+            Rectangle2D quad = new Rectangle2D.Double(screenPos.x - onScreenWidth / 2.0,
+                    screenPos.y - onScreenWidth / 2.0,
+                    onScreenWidth, onScreenWidth);
             if (centerOfMass != null) {
                 Vector2 centOfMassScreen = scaleDown(centerOfMass);
                 g2d.setColor(Color.red);
-                double dotWidth = Math.exp(screenWidth / (0.6 * 1280)) * 7.5;
+                double dotWidth = Math.exp(onScreenWidth / (0.6 * 1280)) * 7.5;
                 Ellipse2D center = new Ellipse2D.Double(centOfMassScreen.x - dotWidth / 2.0,
                         centOfMassScreen.y - dotWidth / 2.0, dotWidth, dotWidth);
                 g2d.draw(center);

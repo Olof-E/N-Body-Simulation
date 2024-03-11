@@ -1,60 +1,42 @@
 package normal;
 
 import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicBoolean;
 
-import barnesHut.QuadTree;
 import common.*;
 
 public class ParSimulation extends Simulation {
 
-    // Test Simulation, basic solar system
-    /*
-     * bodies[0].mass = 3e30;
-     * bodies[0].position = new Vector2(1280 / 2, 1280 / 2);
-     * 
-     * bodies[1].mass = ????
-     * bodies[1].position = new Vector2(1280 / 2, 500);
-     * bodies[1].velocity = new Vector2(8e19, 15e15);
-     * 
-     * bodies[2].mass = ???
-     * bodies[2].position = new Vector2(1280 / 2, 1280 - 250);
-     * bodies[2].velocity = new Vector2(-8e19, -15e15);
-     */
-
     public CyclicBarrier barrier;
     public CyclicBarrier internalBarrier;
 
-    public AtomicBoolean finished;
+    public boolean finished = false;
 
     private Thread[] workers;
     private int threadCount;
 
     public ParSimulation(int numBodies, int simSteps, int threadCount) {
+        // Run basic simulation initialization
         super(numBodies, simSteps);
+
+        // Initialize barriers and threads
         this.threadCount = threadCount;
-
-        quadTree = new QuadTree(new Vector2(SIM_RADIUS, SIM_RADIUS));
-        for (int i = 0; i < bodies.length; i++) {
-            quadTree.Insert(bodies[i]);
-        }
-
         workers = new Thread[threadCount];
 
         internalBarrier = new CyclicBarrier(threadCount, null);
         barrier = new CyclicBarrier(threadCount + 1, null);
-        finished = new AtomicBoolean(false);
 
-        for (int j = 0; j < workers.length; j++) {
-            workers[j] = new Thread(new WorkerTask(j));
-            workers[j].start();
+        for (int i = 0; i < workers.length; i++) {
+            workers[i] = new Thread(new WorkerTask(i));
+            workers[i].start();
+
         }
     }
 
     @Override
     public void Run() {
         super.Run();
-        finished.set(true);
+        // Signal threads that they can terminate
+        finished = true;
     }
 
     @Override
@@ -64,14 +46,14 @@ public class ParSimulation extends Simulation {
     @Override
     protected void updatePositions() {
         try {
-            barrier.await();
-
+            // Wait for all threads to finish before proceeding to next time step
             barrier.await();
         } catch (InterruptedException | BrokenBarrierException e) {
             e.printStackTrace();
         }
     }
 
+    // Code to run in parallel
     public class WorkerTask implements Runnable {
 
         int id;
@@ -82,16 +64,16 @@ public class ParSimulation extends Simulation {
 
         @Override
         public void run() {
-            while (!finished.get()) {
-
+            while (!finished) {
                 try {
-                    barrier.await();
                     calculateForces();
 
+                    // Sync with other threads
                     internalBarrier.await();
 
                     updatePositions();
 
+                    // Sync with main loop
                     barrier.await();
 
                 } catch (Exception e) {
@@ -100,18 +82,19 @@ public class ParSimulation extends Simulation {
             }
         }
 
+        // Calculate forces for all bodies present in simulation
         private void calculateForces() {
             double dist, mag;
             Vector2 dir;
             for (int i = id; i < bodies.length; i += threadCount) {
                 for (int j = i + 1; j < bodies.length; j++) {
-                    Vector2 scaledVecI = bodies[i].position;
-                    Vector2 scaledVecJ = bodies[j].position;
 
-                    dist = Vector2.dist(scaledVecI, scaledVecJ);
+                    dist = Vector2.dist(bodies[i].position, bodies[j].position);
+                    // Newtons gravitational law
                     mag = (G_CONSTANT * bodies[i].mass * bodies[j].mass) / dist * dist;
-                    dir = Vector2.sub(scaledVecJ, scaledVecI);
+                    dir = Vector2.sub(bodies[j].position, bodies[i].position);
 
+                    // Updated both bodies forces
                     bodies[i].force.x += mag * dir.x / dist;
                     bodies[j].force.x -= mag * dir.x / dist;
                     bodies[i].force.y += mag * dir.y / dist;
@@ -120,20 +103,25 @@ public class ParSimulation extends Simulation {
             }
         }
 
+        // Calculate positions & velocities for all bodies
         private void updatePositions() {
             Vector2 deltaV;
             Vector2 deltaP;
             for (int i = id; i < bodies.length; i += threadCount) {
-
+                // Change in velocity based on current force
                 deltaV = Vector2.div(bodies[i].force, bodies[i].mass / DT);
+
+                // Change in position based on current velocity
                 deltaP = Vector2.mul(Vector2.add(bodies[i].velocity, Vector2.div(deltaV, 2)), DT);
 
+                // Update velocities and positions
                 bodies[i].velocity.x += deltaV.x;
                 bodies[i].velocity.y += deltaV.y;
                 bodies[i].position.x += deltaP.x;
                 bodies[i].position.y += deltaP.y;
                 bodies[i].force = new Vector2();
 
+                // Collision check with simulation bounds
                 if (bodies[i].position.x <= 0) {
                     bodies[i].position.x = 1;
                     bodies[i].velocity.x = -bodies[i].velocity.x / 2;

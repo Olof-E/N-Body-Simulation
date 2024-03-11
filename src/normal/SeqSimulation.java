@@ -5,37 +5,25 @@ import common.Vector2;
 
 public class SeqSimulation extends Simulation {
 
-    // Test Simulation, basic solar system
-    /*
-     * bodies[0].mass = 3e30;
-     * bodies[0].position = new Vector2(1280 / 2, 1280 / 2);
-     * 
-     * bodies[1].mass = ????
-     * bodies[1].position = new Vector2(1280 / 2, 500);
-     * bodies[1].velocity = new Vector2(8e19, 15e15);
-     * 
-     * bodies[2].mass = ???
-     * bodies[2].position = new Vector2(1280 / 2, 1280 - 250);
-     * bodies[2].velocity = new Vector2(-8e19, -15e15);
-     */
-
     public SeqSimulation(int numBodies, int simSteps) {
+        // Run basic simulation initialization
         super(numBodies, simSteps);
     }
 
+    // Calculate forces for all bodies present in simulation
     @Override
     protected void calculateForces() {
         double dist, mag;
         Vector2 dir;
         for (int i = 0; i < bodies.length - 1; i++) {
             for (int j = i + 1; j < bodies.length; j++) {
-                Vector2 scaledVecI = bodies[i].position;
-                Vector2 scaledVecJ = bodies[j].position;
 
-                dist = Vector2.dist(scaledVecI, scaledVecJ);
+                dist = Vector2.dist(bodies[i].position, bodies[j].position);
+                // Newtons gravitational law
                 mag = (G_CONSTANT * bodies[i].mass * bodies[j].mass) / dist * dist;
-                dir = Vector2.sub(scaledVecJ, scaledVecI);
+                dir = Vector2.sub(bodies[j].position, bodies[i].position);
 
+                // Updated both bodies forces
                 bodies[i].force.x += mag * dir.x / dist;
                 bodies[j].force.x -= mag * dir.x / dist;
                 bodies[i].force.y += mag * dir.y / dist;
@@ -44,21 +32,26 @@ public class SeqSimulation extends Simulation {
         }
     }
 
+    // Calculate positions & velocities for all bodies
     @Override
     protected void updatePositions() {
         Vector2 deltaV;
         Vector2 deltaP;
         for (int i = 0; i < bodies.length; i++) {
-
+            // Change in velocity based on current force
             deltaV = Vector2.div(bodies[i].force, bodies[i].mass / DT);
+
+            // Change in position based on current velocity
             deltaP = Vector2.mul(Vector2.add(bodies[i].velocity, Vector2.div(deltaV, 2)), DT);
 
+            // Update velocities and positions
             bodies[i].velocity.x += deltaV.x;
             bodies[i].velocity.y += deltaV.y;
             bodies[i].position.x += deltaP.x;
             bodies[i].position.y += deltaP.y;
             bodies[i].force = new Vector2();
 
+            // Collision check with simulation bounds
             if (bodies[i].position.x <= 0) {
                 bodies[i].position.x = 1;
                 bodies[i].velocity.x = -bodies[i].velocity.x / 2;

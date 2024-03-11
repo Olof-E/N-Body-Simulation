@@ -3,6 +3,7 @@ package common;
 import barnesHut.QuadTree;
 
 public abstract class Simulation {
+    // Global constants
     public static final double G_CONSTANT = 6.67545e-11;
     public static final double SIM_RADIUS = 1.4959e17;
     public static final double DT = 5e-5;
@@ -12,21 +13,24 @@ public abstract class Simulation {
     public int simSteps = -1;
     public boolean terminalCompatibility = false;
 
+    // Initialize the simulation area
     public Simulation(int numBodies, int simSteps) {
         bodies = new Body[numBodies];
         this.simSteps = simSteps;
         for (int i = 0; i < bodies.length; i++) {
             bodies[i] = new Body(
                     new Vector2((Math.random() * 0.98 + 0.01) * SIM_RADIUS, (Math.random() * 0.98 + 0.01) * SIM_RADIUS),
-                    5.97219e24 + (Math.random() * 2.0 - 1.0) * 4.33e24);
+                    5.97219e24 + (Math.random() * 2.0 - 0.8) * 4.33e24);
 
         }
     }
 
+    // Main simulation loop
     public void Run() {
         if (simSteps == -1) {
             while (true) {
                 long startTime = System.nanoTime();
+                // Run Simulation step
                 calculateForces();
                 updatePositions();
 
@@ -43,6 +47,7 @@ public abstract class Simulation {
             double[] times = new double[simSteps];
             for (int i = 0; i < simSteps; i++) {
                 long startTime = System.nanoTime();
+                // Run Simulation step
                 calculateForces();
                 updatePositions();
                 long endTime = System.nanoTime();
@@ -50,7 +55,10 @@ public abstract class Simulation {
                 double runTime = (endTime - startTime) / 1000000.0;
                 times[i] = runTime;
 
+                // Update console log info every 25 steps
                 if (i % 25 == 0 || i == simSteps - 1) {
+
+                    // Print progress bar
                     char remaining = terminalCompatibility ? ' ' : '░';
                     char finished = terminalCompatibility ? '#' : '█';
 
@@ -69,6 +77,7 @@ public abstract class Simulation {
                     Window.GetInstance().updateWindow();
             }
 
+            // Calculate total execution time
             double totalTime = 0;
             for (int i = 0; i < times.length; i++) {
                 totalTime += times[i];
@@ -79,6 +88,7 @@ public abstract class Simulation {
         }
     }
 
+    // Methods for children to define
     protected abstract void calculateForces();
 
     protected abstract void updatePositions();

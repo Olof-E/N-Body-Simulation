@@ -1,18 +1,9 @@
-## Getting Started
+# Project ID1217
 
-Welcome to the VS Code Java world. Here is a guideline to help you get started to write Java code in Visual Studio Code.
+To run the program be in the same directory as sim-run.sh and execute it with the parameters to use for the simulation. To get a help list of what parameters can be user-defined, use the help flag as in ``./sim-run.sh -h`` or ``./sim-run.sh --help``.
 
-## Folder Structure
+An example would be:
 
-The workspace contains two folders by default, where:
+``./sim-run.sh -n 1000 -s 4000 -t 4 -w 4 -win``
 
-- `src`: the folder to maintain sources
-- `lib`: the folder to maintain dependencies
-
-Meanwhile, the compiled output files will be generated in the `bin` folder by default.
-
-> If you want to customize the folder structure, open `.vscode/settings.json` and update the related settings there.
-
-## Dependency Management
-
-The `JAVA PROJECTS` view allows you to manage your dependencies. More details can be found [here](https://github.com/microsoft/vscode-java-dependency#manage-dependencies).
+The command above would start a simulation of 1000 bodies that would run for 4000 times steps using the parallelized version of Barnes-Hut with 4 workers and the graphical visualization turned on.
