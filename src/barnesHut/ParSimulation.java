@@ -1,15 +1,10 @@
 package barnesHut;
 
-import java.util.concurrent.BrokenBarrierException;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.CyclicBarrier;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import common.Simulation;
 import common.Vector2;
-import common.Window;
 
 public class ParSimulation extends Simulation {
 

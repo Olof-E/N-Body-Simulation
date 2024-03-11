@@ -2,7 +2,6 @@ package barnesHut;
 
 import common.Simulation;
 import common.Vector2;
-import common.Window;
 
 public class SeqSimulation extends Simulation {
 
