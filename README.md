@@ -34,8 +34,6 @@ The example command above would start a simulation of 1000 bodies that would run
 
 ### **-t \<type>** or **--engine-type \<type>** |> Can be used to tell the program what simulation algorithm to use
 * **(type) - Algorithm Name**
-<hr>
-
 * (1) - Sequential Brute-force (Default) 
 * (2) - Parallel Brute-force
 * (3) - Sequential Barnes-Hut
