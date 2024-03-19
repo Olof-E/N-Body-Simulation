@@ -37,6 +37,9 @@ public class ParSimulation extends Simulation {
         super.Run();
         // Signal threads that they can terminate
         finished = true;
+        for (int i = 0; i < workers.length; i++) {
+            workers[i].interrupt();
+        }
     }
 
     @Override
@@ -64,8 +67,9 @@ public class ParSimulation extends Simulation {
 
         @Override
         public void run() {
-            while (!finished) {
-                try {
+            try {
+                while (!Thread.interrupted()) {
+
                     calculateForces();
 
                     // Sync with other threads
@@ -76,9 +80,9 @@ public class ParSimulation extends Simulation {
                     // Sync with main loop
                     barrier.await();
 
-                } catch (Exception e) {
-                    e.printStackTrace();
                 }
+            } catch (Exception e) {
+                return;
             }
         }
 

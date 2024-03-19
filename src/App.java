@@ -74,9 +74,6 @@ public class App {
         if (visualizationEnabled)
             Window.GetInstance().Close();
 
-        // Tell program to completely exit
-        System.exit(0);
-
     }
 
     // Print help msg to console

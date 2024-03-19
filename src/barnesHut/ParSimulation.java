@@ -1,7 +1,6 @@
 package barnesHut;
 
 import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import common.Simulation;
 import common.Vector2;
@@ -44,6 +43,9 @@ public class ParSimulation extends Simulation {
         super.Run();
         // Signal all threads to terminate
         finished = true;
+        for (int i = 0; i < workers.length; i++) {
+            workers[i].interrupt();
+        }
     }
 
     @Override
@@ -78,9 +80,9 @@ public class ParSimulation extends Simulation {
 
         @Override
         public void run() {
-            while (!finished) {
+            try {
+                while (!Thread.interrupted()) {
 
-                try {
                     // Wait for pseudo bodies to be calculated by main thread
                     barrier.await();
 
@@ -94,9 +96,9 @@ public class ParSimulation extends Simulation {
                     // Sync with main loop
                     barrier.await();
 
-                } catch (Exception e) {
-                    e.printStackTrace();
                 }
+            } catch (Exception e) {
+                return;
             }
         }
 
