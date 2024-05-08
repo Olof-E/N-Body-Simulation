@@ -1,6 +1,12 @@
 # Project ID1217
 This project is an implementation of a solver for the N-Body physics problem. This particular implementation features two different algorithms for simulating N bodies, each of which has both a sequential and parallel version.
 
+<h3 align=center>
+  Rendering of an example simulation run
+</h3>
+<p align=center>
+  <img src="https://github.com/Olof-E/N-Body-Simulation/assets/44928426/ca291ee7-b203-4897-9043-1e6aef85eaa5" width=650 height=650>
+</p>
 
 ## Compile and Run
 To run the program, make sure to be in the same directory as the sim-run.sh script and execute it with the parameters to use for the simulation. To get a help list of what parameters can be user-defined, use the help flag as in ``./sim-run.sh -h`` or ``./sim-run.sh --help``.
